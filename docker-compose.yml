@@ -1,0 +1,7 @@
+version: '3.9'
+
+services:
+  hello-service:
+    image: alpine:3.20
+    container_name: hello-service
+    command: ["sh", "-c", "echo '🚀 ISP Telecable MVP Docker OK'; sleep 5"]
