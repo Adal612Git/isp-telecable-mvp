@@ -1,0 +1,178 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: infra-postgres
+    environment:
+      POSTGRES_USER: isp_admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: isp_mvp
+    ports:
+      - "${HOST_POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U isp_admin"]
+      interval: 5s
+      retries: 10
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: infra-redis
+    ports:
+      - "${HOST_REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.4
+    container_name: infra-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "${HOST_ZOOKEEPER_PORT:-2181}:2181"
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w 2 localhost 2181 | grep imok || exit 1"]
+      interval: 10s
+      retries: 12
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.4
+    container_name: infra-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "${HOST_KAFKA_PORT_1:-29092}:29092"
+      - "${HOST_KAFKA_PORT_2:-29093}:29093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_INTERNAL://0.0.0.0:29093
+      # ✅ Corrige nombre del host para otros contenedores (no uses localhost)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://infra-kafka:${HOST_KAFKA_PORT_1:-29092},PLAINTEXT_INTERNAL://infra-kafka:29093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server infra-kafka:29092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      retries: 12
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.0
+    container_name: infra-keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    ports:
+      - "${HOST_KEYCLOAK_PORT:-8080}:8080"
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.58
+    container_name: infra-jaeger
+    ports:
+      - "${HOST_JAEGER_UI_PORT:-16686}:16686"         # UI
+      - "${HOST_JAEGER_THRIFT_PORT:-14268}:14268"     # Thrift HTTP
+      - "${HOST_OTLP_GRPC_PORT:-4317}:4317"           # OTLP gRPC
+      - "${HOST_OTLP_HTTP_PORT:-4318}:4318"           # OTLP HTTP
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: infra-prometheus
+    ports:
+      - "${HOST_PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: infra-grafana
+    ports:
+      - "${HOST_GRAFANA_PORT:-3000}:3000"
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: infra-loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "${HOST_LOKI_PORT:-3100}:3100"
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: infra-tempo
+    command: ["-config.file=/etc/tempo-local.yaml"]
+    ports:
+      - "${HOST_TEMPO_PORT:-3200}:3200"
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  router-emulator:
+    image: alpine:3.20
+    container_name: infra-router-emulator
+    command: ["sh", "-c", "echo 'Router emulado activo: $${ROUTER_MODE}'; sleep infinity"]
+    environment:
+      ROUTER_MODE: ${ROUTER_MODE:-emulated}
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  frr:
+    image: frrouting/frr:latest
+    container_name: infra-frr
+    command: ["sh", "-c", "echo 'FRR emulado listo'; sleep infinity"]
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: infra-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "${HOST_MINIO_API_PORT:-9000}:9000"
+      - "${HOST_MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - ./minio-data:/data
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+networks:
+  telecable-net:
+    # ✅ Usa internal si prefieres aislar de la red externa
+    external: true

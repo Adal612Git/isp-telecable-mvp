@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Diagramas extendidos — MVP Lotus (v2)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      /* High-contrast palette */
+      --bg:#0b1220;            /* page background */
+      --surface:#0f172a;       /* cards background (slate-900) */
+      --surface-2:#111827;     /* darker */
+      --text:#e5e7eb;          /* slate-200 */
+      --muted:#9ca3af;         /* slate-400 */
+      --primary:#2563eb;       /* blue-600 */
+      --secondary:#dc2626;     /* red-600 */
+      --accent:#f59e0b;        /* amber-500 */
+      --success:#22c55e;       /* green-500 */
+      --warning:#f59e0b;       /* amber-500 */
+      --error:#ef4444;         /* red-500 */
+      --card-shadow: 0 10px 40px rgba(0,0,0,.45);
+      --radius:18px;
+    }
+    html,body{margin:0; background:var(--bg); color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .container{max-width:1280px; margin:38px auto; padding:0 16px}
+    h1{font-size:34px; margin:0 0 6px 0; font-weight:800}
+    p.lead{color:var(--muted); margin:0 0 24px}
+    .card{background:var(--surface); border-radius:var(--radius); padding:20px; margin:24px 0; box-shadow:var(--card-shadow); border:1px solid rgba(255,255,255,.06)}
+    .label{display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; color:#0b1220; margin:0 6px 12px 0}
+    .primary{background:var(--primary); color:#fff}
+    .secondary{background:var(--secondary); color:#fff}
+    .accent{background:var(--accent); color:#0b1220}
+    .grid{display:grid; grid-template-columns:1fr; gap:18px}
+    @media (min-width: 980px){ .grid {grid-template-columns:1fr 1fr;} }
+    .mermaid{border-radius:14px; background:#ffffff; padding:8px; overflow:auto}
+    .subtle{color:var(--muted); font-size:13px}
+    .kbd{background:var(--surface-2); border:1px solid rgba(255,255,255,.08); padding:2px 6px; border-radius:8px; font-size:12px}
+    footer{color:var(--muted); font-size:12px; margin:28px 0 8px}
+    .hr{height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent); margin:18px 0}
+    /* Force high-contrast text inside Mermaid SVGs */
+    .mermaid svg text, .mermaid svg tspan { fill:#0b1220 !important; font-weight:600 }
+    .mermaid svg .actor > rect { fill:#e3f2fd !important; stroke:#2563eb !important }
+    .mermaid svg .note { fill:#fff7ed !important; stroke:#f59e0b !important }
+  
+    /* --- Contrast fixes: force node labels to black --- */
+    .mermaid svg text,
+    .mermaid svg tspan,
+    .mermaid svg .nodeLabel,
+    .mermaid svg .label,
+    .mermaid svg .edgeLabel,
+    .mermaid svg .messageText,
+    .mermaid svg .classText,
+    .mermaid svg .stateLabel,
+    .mermaid svg .er .entityLabel,
+    .mermaid svg .er .relationshipLabel {
+      fill:#000000 !important;
+      color:#000000 !important;
+    }
+    .mermaid .nodeLabel,
+    .mermaid .label,
+    .mermaid .edgeLabel,
+    .mermaid .er .label,
+    .mermaid .er .entityLabel,
+    .mermaid .er .relationshipLabel {
+      color:#000000 !important;
+    }
+
+</style>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      fontFamily: "Inter, sans-serif",
+      themeVariables: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: "16px",
+        textColor: "#000000",
+        lineColor: "#111827",
+        background: "#ffffff",
+        mainBkg: "#ffffff",
+        primaryColor: "#2563eb",
+        primaryTextColor: "#ffffff",
+        primaryBorderColor: "#1e40af",
+        secondaryColor: "#dc2626",
+        secondaryTextColor: "#ffffff",
+        tertiaryColor: "#f59e0b",
+        tertiaryTextColor: "#0b1220",
+        nodeBorder: "#cbd5e1",
+        clusterBkg: "#f8fafc",
+        clusterBorder: "#94a3b8",
+        actorBorder: "#2563eb",
+        actorBkg: "#e3f2fd",
+        signalColor: "#2563eb",
+        activationBkgColor: "#bfdbfe",
+        activationBorderColor: "#2563eb",
+        noteBkgColor: "#fff7ed",
+        noteTextColor: "#0b1220"
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Diagramas extendidos — MVP Lotus (v2)</h1>
+    <p class="lead">Colección de diagramas con alto contraste, lista para impresión/PDF (<span class="kbd">Ctrl/Cmd + P</span>). Se corrigieron contrastes y pequeñas sintaxis para asegurar el render.</p>
+
+    <!-- Sección 0: Guía rápida / Leyenda -->
+    <div class="card">
+      <span class="label accent">Guía rápida</span>
+      <div class="grid">
+        <div>
+          <b>Leyenda UML breve:</b>
+          <ul>
+            <li><b>Clases</b>: atributos y métodos; relaciones <i>asociación</i>, <i>agregación</i> (rombo blanco), <i>composición</i> (rombo negro), <i>herencia</i> (flecha vacía).</li>
+            <li><b>Secuencia</b>: mensajes ordenados en el tiempo; <i>alt</i> / <i>else</i> para ramificaciones.</li>
+            <li><b>Estados</b>: nodos y transiciones que cambian por eventos.</li>
+            <li><b>Actividades</b>: flujo de tareas con decisiones.</li>
+            <li><b>DFD</b>: procesos, almacenes y flujos de datos.</li>
+          </ul>
+          <div class="subtle">Nota: “BPMN-like” se aproxima con flowchart (Mermaid aún no tiene BPMN nativo).</div>
+        </div>
+        <div>
+          <b>Patrones de diseño sugeridos (dominio Lotus):</b>
+          <ul>
+            <li><b>Auth</b>: Strategy (proveedores), Adapter (OAuth/JWT), Decorator (logging), Facade (AuthService).</li>
+            <li><b>CRUD</b>: Repository, Unit of Work, Specification, DTOs, Service Layer.</li>
+            <li><b>Pagos</b>: Strategy (métodos), Template Method (flujo), Adapter (gateway), Outbox + Idempotencia, Circuit Breaker.</li>
+            <li><b>Eventos/Notifs</b>: Observer/Pub-Sub, Mediator.</li>
+            <li><b>Escala</b>: CQRS (si aplica), Cache, Feature Flags, Telemetría (logs/métricas/trazas).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 1: Requisitos & Comportamiento -->
+    <div class="card">
+      <span class="label primary">Requisitos & Comportamiento</span>
+      <div class="grid">
+        <!-- Use Case: Gestión de Productos -->
+        <div class="mermaid">
+%% Use Case (aprox con flowchart): Gestión de Productos
+flowchart LR
+  subgraph Actores
+    A[Administrador]
+  end
+  subgraph Casos
+    ucCrear((Crear producto))
+    ucActualizar((Actualizar producto))
+    ucEliminar((Eliminar producto))
+    ucListar((Listar productos))
+    ucInventario((Ajustar inventario))
+  end
+  A --> ucCrear
+  A --> ucActualizar
+  A --> ucEliminar
+  A --> ucListar
+  A --> ucInventario
+        </div>
+
+        <!-- Use Case: Gestión de Pedidos -->
+        <div class="mermaid">
+%% Use Case (aprox con flowchart): Gestión de Pedidos
+flowchart LR
+  subgraph Actores
+    U[Usuario]
+    A[Administrador]
+  end
+  subgraph Casos
+    ucCrearPed((Crear pedido))
+    ucCancelarPed((Cancelar pedido))
+    ucVerDetalle((Ver detalle de pedido))
+    ucActualizarEstado((Actualizar estado))
+  end
+  U --> ucCrearPed
+  U --> ucVerDetalle
+  A --> ucCancelarPed
+  A --> ucActualizarEstado
+        </div>
+
+        <!-- Use Case: Reportes y Usuarios -->
+        <div class="mermaid">
+%% Use Case (aprox con flowchart): Reportes y Usuarios
+flowchart LR
+  subgraph Actores
+    A[Administrador]
+    S[Soporte]
+  end
+  subgraph Casos
+    ucReporteVenta((Generar reporte de ventas))
+    ucReporteStock((Generar reporte de stock))
+    ucCrearUsuario((Crear usuario))
+    ucAsignarRol((Asignar rol))
+  end
+  A --> ucReporteVenta
+  A --> ucReporteStock
+  S --> ucCrearUsuario
+  S --> ucAsignarRol
+        </div>
+
+        <!-- Activity: Alta de Cliente -->
+        <div class="mermaid">
+%% Activity: Proceso alta de cliente
+flowchart TD
+  Start([Inicio]) --> Capturar["Capturar datos de cliente"]
+  Capturar --> Validar["Validar información"]
+  Validar -->|Datos correctos| Guardar["Guardar en BD"]
+  Validar -->|Datos incorrectos| Corregir["Solicitar corrección"]
+  Corregir --> Capturar
+  Guardar --> Confirmar["Enviar confirmación"]
+  Confirmar --> End([Fin])
+        </div>
+
+        <!-- Activity: Devolución de pedido (fix syntax) -->
+        <div class="mermaid">
+%% Activity: Proceso de devolución
+flowchart TD
+  A([Inicio]) --> Solicitar["Cliente solicita devolución"]
+  Solicitar --> Revisar["Revisar elegibilidad"]
+  Revisar -->|Aprobado| Autorizar["Autorizar devolución"]
+  Revisar -->|Rechazado| NotificarRechazo["Notificar rechazo"]
+  Autorizar --> Reembolsar["Procesar reembolso"]
+  Reembolsar --> Notificar["Notificar cliente"]
+  Notificar --> Z([Fin])
+  NotificarRechazo --> Z
+        </div>
+
+        <!-- Activity: Generar reporte -->
+        <div class="mermaid">
+%% Activity: Generar reporte
+flowchart TD
+  BStart([Inicio]) --> Seleccionar["Seleccionar periodo"]
+  Seleccionar --> Consultar["Consultar datos"]
+  Consultar --> Generar["Generar reporte"]
+  Generar --> Revisar["Revisar salida"]
+  Revisar -->|Ajustar parámetros| Seleccionar
+  Revisar --> BEnd([Fin])
+        </div>
+
+        <!-- State: Pedido -->
+        <div class="mermaid">
+%% State Machine: Estados del pedido
+stateDiagram-v2
+  [*] --> Creado
+  Creado --> Pagado: Pago aprobado
+  Pagado --> Enviado: Envío generado
+  Enviado --> Entregado: Confirmación de entrega
+  Pagado --> Cancelado: Cancelar pedido
+  Enviado --> Cancelado: Devolver pedido
+        </div>
+
+        <!-- State: Pago -->
+        <div class="mermaid">
+%% State Machine: Estados del pago
+stateDiagram-v2
+  [*] --> Pendiente
+  Pendiente --> Aprobado: aprobación
+  Pendiente --> Rechazado: rechazo
+  Aprobado --> Reembolsado: reembolso
+  Rechazado --> Pendiente: reintentar
+  Reembolsado --> [*]
+  Aprobado --> Cancelado: cancelar
+  Cancelado --> [*]
+        </div>
+
+        <!-- State: Usuario -->
+        <div class="mermaid">
+%% State Machine: Estados del usuario
+stateDiagram-v2
+  [*] --> Inactivo
+  Inactivo --> Activo: Activación
+  Activo --> Suspendido: Suspender
+  Suspendido --> Activo: Rehabilitar
+  Activo --> Eliminado: Eliminar
+  Suspendido --> Eliminado: Eliminar
+  Eliminado --> [*]
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 2: Estructura & Arquitectura -->
+    <div class="card">
+      <span class="label secondary">Estructura & Arquitectura</span>
+      <div class="grid">
+        <!-- Class: Entidades principales -->
+        <div class="mermaid">
+%% Class Diagram: Entidades principales
+classDiagram
+  class Usuario {
+    +int id
+    +string username
+    +string email
+    +string password_hash
+  }
+  class Rol {
+    +int id
+    +string name
+    +string description
+  }
+  class Cliente {
+    +int id
+    +string nombre
+    +string apellido
+    +string email
+    +string telefono
+  }
+  class Producto {
+    +int id
+    +string nombre
+    +string descripcion
+    +decimal precio
+    +int stock
+  }
+  class Pedido {
+    +int id
+    +DateTime fecha
+    +string estado
+    +decimal total
+  }
+  class PedidoItem {
+    +int id
+    +int cantidad
+    +decimal precio_unitario
+  }
+  class Pago {
+    +int id
+    +decimal monto
+    +string metodo
+    +string estado
+  }
+  Usuario "1" -- "*" Rol : tiene
+  Cliente "1" -- "*" Pedido : realiza
+  Pedido "1" -- "*" PedidoItem : contiene
+  Producto "1" -- "*" PedidoItem : participa
+  Pedido "1" -- "1" Pago : registra
+        </div>
+
+        <!-- Class: Controladores y servicios -->
+        <div class="mermaid">
+%% Class Diagram: Controladores y servicios
+classDiagram
+  class AuthController { +login() +logout() }
+  class UserController { +createUser() +updateUser() +deleteUser() +listUsers() }
+  class OrderController { +createOrder() +cancelOrder() +getOrder() +updateStatus() }
+  class PaymentController { +initPayment() +confirmPayment() }
+  class AuthService { +authenticate() +generateToken() }
+  class UserService { +create() +update() +delete() +list() }
+  class OrderService { +create() +cancel() +findById() +updateStatus() }
+  class PaymentService { +process() +verify() +refund() }
+  class UserRepository { +save() +findById() +delete() }
+  class OrderRepository { +save() +findById() +delete() }
+  AuthController --> AuthService
+  UserController --> UserService
+  OrderController --> OrderService
+  PaymentController --> PaymentService
+  AuthService --> UserRepository
+  UserService --> UserRepository
+  OrderService --> OrderRepository
+  PaymentService --> OrderRepository
+        </div>
+
+        <!-- Class: Patrones -->
+        <div class="mermaid">
+%% Class Diagram: Patrones de diseño
+classDiagram
+  class PaymentStrategy { <<interface>> +pay(amount) }
+  class CreditCardPayment { +pay(amount) }
+  class PaypalPayment { +pay(amount) }
+  class MercadoPagoPayment { +pay(amount) }
+  PaymentStrategy <|.. CreditCardPayment
+  PaymentStrategy <|.. PaypalPayment
+  PaymentStrategy <|.. MercadoPagoPayment
+  class PaymentContext { -strategy: PaymentStrategy +setStrategy() +executePayment(amount) }
+  PaymentContext --> PaymentStrategy
+  class Subscriber { <<interface>> +update(event) }
+  class NotificationService { +subscribe(subscriber) +notify(event) }
+  class EmailNotifier { +update(event) }
+  class SMSNotifier { +update(event) }
+  Subscriber <|.. EmailNotifier
+  Subscriber <|.. SMSNotifier
+  NotificationService --> Subscriber
+        </div>
+
+        <!-- Component: Microservicios -->
+        <div class="mermaid">
+%% Component Diagram: Microservicios extendidos
+graph TD
+  subgraph UI
+    WebApp
+    MobileApp
+  end
+  subgraph BFF[Backend for Frontend]
+    BFF_API[BFF API]
+  end
+  subgraph Services
+    AuthService
+    ClientService
+    OrderService
+    PaymentService
+    InventoryService
+    ReportService
+    NotificationService
+  end
+  subgraph Infraestructura
+    RedisCache
+    MessageBroker[Kafka/RabbitMQ]
+    SQLDB
+    NoSQLDB
+  end
+  WebApp --> BFF_API
+  MobileApp --> BFF_API
+  BFF_API --> AuthService
+  BFF_API --> ClientService
+  BFF_API --> OrderService
+  BFF_API --> PaymentService
+  BFF_API --> InventoryService
+  BFF_API --> ReportService
+  Services --> RedisCache
+  Services --> MessageBroker
+  Services --> SQLDB
+  PaymentService --> NoSQLDB
+  NotificationService --> MessageBroker
+  ReportService --> SQLDB
+        </div>
+
+        <!-- Component: Módulos por dominio -->
+        <div class="mermaid">
+%% Component Diagram: Módulos por dominio
+graph TD
+  subgraph DominioClientes
+    ClientesAPI
+    ClientesService
+    ClientesDB
+  end
+  subgraph DominioVentas
+    VentasAPI
+    VentasService
+    VentasDB
+  end
+  subgraph DominioPagos
+    PagosAPI
+    PagosService
+    Pasarela
+  end
+  ClientesAPI --> ClientesService
+  VentasAPI --> VentasService
+  PagosAPI --> PagosService
+  ClientesService --> ClientesDB
+  VentasService --> VentasDB
+  PagosService --> Pasarela
+  ClientesService --> VentasService
+  VentasService --> PagosService
+        </div>
+
+        <!-- Deployment: Básico -->
+        <div class="mermaid">
+%% Deployment Diagram (aprox con graph)
+graph TD
+  subgraph Usuario
+    Browser
+  end
+  subgraph WebServer
+    Nginx[Servidor Web]
+  end
+  subgraph AppServer
+    App[Servidor de Aplicaciones]
+  end
+  subgraph DBServer
+    PostgreSQL[Base de Datos]
+  end
+  subgraph Externo
+    Gateway[Pasarela de Pago]
+  end
+  Browser -->|HTTP| Nginx
+  Nginx -->|REST| App
+  App -->|SQL| PostgreSQL
+  App -->|API| Gateway
+        </div>
+
+        <!-- Deployment: Alta disponibilidad -->
+        <div class="mermaid">
+%% Deployment Diagram: Alta disponibilidad
+graph TD
+  subgraph Cliente
+    Browser
+  end
+  subgraph BAL[Load Balancer]
+    LB
+  end
+  subgraph WebTier
+    N1[Nginx-1]
+    N2[Nginx-2]
+  end
+  subgraph AppTier
+    A1[App-1]
+    A2[App-2]
+    A3[App-3]
+  end
+  subgraph DataTier
+    DBM[(DB Master)]
+    DBR1[(Replica-1)]
+    DBR2[(Replica-2)]
+  end
+  Browser -->|HTTPS| LB
+  LB --> N1
+  LB --> N2
+  N1 --> A1
+  N2 --> A2
+  N2 --> A3
+  A1 --> DBM
+  A2 --> DBM
+  A3 --> DBM
+  DBM --> DBR1
+  DBM --> DBR2
+        </div>
+
+        <!-- Deployment: Entornos Dev/QA/Prod -->
+        <div class="mermaid">
+%% Deployment Diagram: Entornos Dev/QA/Prod
+graph TD
+  subgraph Dev
+    DevUser
+    DevServer
+    DevDB
+  end
+  subgraph QA
+    QAUser
+    QAServer
+    QADB
+  end
+  subgraph Prod
+    ProdUser
+    ProdLB
+    ProdServer1
+    ProdServer2
+    ProdDB
+  end
+  DevUser --> DevServer
+  QAUser --> QAServer
+  ProdUser --> ProdLB
+  DevServer --> DevDB
+  QAServer --> QADB
+  ProdLB --> ProdServer1
+  ProdLB --> ProdServer2
+  ProdServer1 --> ProdDB
+  ProdServer2 --> ProdDB
+        </div>
+
+        <!-- ER: Extendido -->
+        <div class="mermaid">
+%% ER Diagram (Mermaid erDiagram)
+erDiagram
+    CATEGORIES { INT id PK VARCHAR nombre TEXT descripcion }
+    PRODUCTS { INT id PK VARCHAR nombre TEXT descripcion DECIMAL precio INT stock INT categoria_id FK }
+    INVENTORIES { INT id PK INT producto_id FK INT cantidad DATETIME fecha_actualizacion }
+    CLIENTS { INT id PK VARCHAR nombre VARCHAR apellido VARCHAR email VARCHAR telefono }
+    ADDRESSES { INT id PK INT cliente_id FK VARCHAR calle VARCHAR ciudad VARCHAR estado VARCHAR cp }
+    USERS { INT id PK VARCHAR username VARCHAR email VARCHAR password_hash }
+    TOKENS { INT id PK INT user_id FK VARCHAR token DATETIME expiration }
+    LOGS { INT id PK INT user_id FK VARCHAR accion DATETIME fecha }
+    CATEGORIES ||--o{ PRODUCTS : "tiene"
+    PRODUCTS ||--o{ INVENTORIES : "almacen"
+    CLIENTS ||--o{ ADDRESSES : "vive en"
+    USERS ||--o{ TOKENS : "tiene"
+    USERS ||--o{ LOGS : "genera"
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 3: Interacción & Procesos -->
+    <div class="card">
+      <span class="label accent">Interacción & Procesos</span>
+      <div class="grid">
+        <!-- Sequence: Consultar clientes -->
+        <div class="mermaid">
+%% Sequence: Consultar clientes
+sequenceDiagram
+  autonumber
+  actor Admin as Administrador
+  participant API as API
+  participant DB as BaseDatos
+  note over Admin,API: UC04 – Consultar lista de clientes
+  Admin->>API: Solicitar lista de clientes
+  API->>DB: Consultar tabla clientes
+  DB-->>API: Retornar clientes
+  API-->>Admin: Mostrar lista paginada
+        </div>
+
+        <!-- Sequence: Procesar pago (idempotencia) -->
+        <div class="mermaid">
+%% Sequence: Procesar pago con idempotencia
+sequenceDiagram
+  autonumber
+  actor User as Usuario
+  participant FE as Frontend
+  participant API as API
+  participant PaymentSvc as ServicioPagos
+  participant Gateway as PasarelaPagoExt
+  User->>FE: Click "Pagar"
+  FE->>API: Solicitar procesamiento
+  API->>PaymentSvc: iniciarPago(idempotencyKey)
+  PaymentSvc->>Gateway: charge(idempotencyKey)
+  Gateway-->>PaymentSvc: resultado
+  alt aprobado
+    PaymentSvc-->>API: confirmarVenta()
+    API-->>FE: OK
+  else retry/timeout
+    PaymentSvc-->>API: reintentar / consolidar
+    API-->>FE: estado transacción
+  end
+        </div>
+
+        <!-- Sequence: Registrar cliente -->
+        <div class="mermaid">
+%% Sequence: Registrar cliente
+sequenceDiagram
+  autonumber
+  actor User as Usuario
+  participant FE as Frontend
+  participant API as API
+  participant ClientSvc as ServicioClientes
+  participant DB as BaseDatos
+  User->>FE: Ingresar datos
+  FE->>API: Enviar solicitud
+  API->>ClientSvc: Validar y registrar
+  ClientSvc->>DB: Guardar cliente
+  DB-->>ClientSvc: ID cliente
+  ClientSvc-->>API: Cliente creado
+  API-->>FE: Respuesta exitosa
+  FE-->>User: Mostrar confirmación
+        </div>
+
+        <!-- Sequence: Generar reporte -->
+        <div class="mermaid">
+%% Sequence: Generar Reporte
+sequenceDiagram
+  autonumber
+  actor Admin as Administrador
+  participant FE as Frontend
+  participant API as API
+  participant ReportSvc as ServicioReportes
+  participant DB as BaseDatos
+  Admin->>FE: Seleccionar parámetros
+  FE->>API: Solicitar reporte
+  API->>ReportSvc: Generar
+  ReportSvc->>DB: Consultar datos
+  DB-->>ReportSvc: Datos
+  ReportSvc-->>API: Reporte generado
+  API-->>FE: Enviar reporte
+  FE-->>Admin: Descargar reporte
+        </div>
+
+        <!-- Communication: Login -->
+        <div class="mermaid">
+%% Communication (aprox con flowchart): Login
+flowchart LR
+  Usuario -->|1: login()| AuthService
+  AuthService -->|2: consultaUsuario()| DB
+  DB -->|3: datosUsuario| AuthService
+  AuthService -->|4: sessionOk()| Usuario
+        </div>
+
+        <!-- Communication: Procesar pedido -->
+        <div class="mermaid">
+%% Communication (aprox con flowchart): Procesar pedido
+flowchart LR
+  Usuario -->|1: crearPedido()| PedidoCtrl
+  PedidoCtrl -->|2: validar()| PedidoSvc
+  PedidoSvc -->|3: obtenerStock()| ProductoSvc
+  ProductoSvc -->|4: stockDisponible| PedidoSvc
+  PedidoSvc -->|5: guardarPedido()| DB
+  PedidoSvc -->|6: notificar()| NotifSvc
+  NotifSvc -->|7: enviarCorreo()| Usuario
+        </div>
+
+        <!-- DFD: Registrar venta -->
+        <div class="mermaid">
+%% DFD (aprox con flowchart): Registrar venta
+flowchart TD
+  P["Proceso Registrar Venta"]
+  User([Usuario])
+  DS1[[Pedidos]]
+  DS2[[Productos]]
+  PP([Pasarela de pagos])
+  User -->|Datos carrito| P
+  P -->|Orden| DS1
+  DS1 -->|Id pedido| P
+  P -->|Transacción| PP
+  PP -->|Respuesta| P
+  P -->|Factura| User
+  P -->|Actualizar stock| DS2
+  DS2 -->|Stock| P
+        </div>
+
+        <!-- DFD: Alta de cliente -->
+        <div class="mermaid">
+%% DFD (aprox con flowchart): Alta de cliente
+flowchart TD
+  U[Usuario] -->|Datos cliente| P[Proceso Alta Cliente]
+  P -->|Alta| DSClientes[(Clientes)]
+  DSClientes -->|Id cliente| P
+  P -->|Confirmación| U
+        </div>
+
+        <!-- DFD: Actualizar inventario -->
+        <div class="mermaid">
+%% DFD (aprox con flowchart): Actualizar inventario
+flowchart TD
+  V[Vendedor] -->|Cambios stock| P[Proceso Actualizar Inventario]
+  P -->|Actualizar| DSInventory[(Inventario)]
+  DSInventory -->|Nuevo stock| P
+  P -->|Notificación| V
+        </div>
+
+        <!-- BPMN-like: Onboarding -->
+        <div class="mermaid">
+%% BPMN-like: Onboarding de usuario
+flowchart TD
+  Start((Inicio)) --> T1["Crear cuenta"]
+  T1 --> T2["Enviar correo de activación"]
+  T2 --> G{"¿Activación completada?"}
+  G -->|Sí| T3["Habilitar cuenta"]
+  T3 --> End((Fin))
+  G -->|No| T4["Enviar recordatorio"]
+  T4 --> G
+        </div>
+
+        <!-- BPMN-like: Devolución -->
+        <div class="mermaid">
+%% BPMN-like: Devolución de pedido
+flowchart TD
+  start((Inicio)) --> s1["Solicitar devolución"]
+  s1 --> s2["Revisar pedido"]
+  s2 --> g{"¿Producto en plazo?"}
+  g -->|Sí| s3["Aprobar devolución"]
+  g -->|No| s4["Rechazar solicitud"]
+  s3 --> s5["Generar etiqueta de retorno"]
+  s5 --> s6["Recibir producto"]
+  s6 --> s7["Procesar reembolso"]
+  s7 --> end((Fin))
+  s4 --> end
+        </div>
+
+        <!-- BPMN-like: Generación de informe -->
+        <div class="mermaid">
+%% BPMN-like: Generación de informe
+flowchart TD
+  start2((Inicio)) --> x1["Elegir periodo"]
+  x1 --> x2["Solicitar datos al sistema"]
+  x2 --> x3["Consolidar información"]
+  x3 --> x4{"¿Datos correctos?"}
+  x4 -->|No| x2
+  x4 -->|Sí| x5["Crear informe"]
+  x5 --> x6["Enviar informe"]
+  x6 --> end2((Fin))
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 4: Requisitos (Mermaid requirementDiagram) -->
+    <div class="card">
+      <span class="label primary">Mapa de Requisitos (Mermaid)</span>
+      <div class="grid">
+        <div class="mermaid">
+%% Requirement Diagram: Resumen SRS
+requirementDiagram
+  requirement R1 { id: 1 text: "Autenticación segura (JWT/MFA)" risk: high verifymethod: test }
+  requirement R2 { id: 2 text: "Pagos idempotentes" risk: high verifymethod: test }
+  requirement R3 { id: 3 text: "CRUD Clientes" risk: medium verifymethod: demonstration }
+  requirement R4 { id: 4 text: "Reportes con filtros" risk: medium verifymethod: analysis }
+  element ImplAuth { type: component docRef: "AuthService" }
+  element ImplPago { type: component docRef: "PaymentService" }
+  element ImplClientes { type: component docRef: "ClientService" }
+  element ImplReportes { type: component docRef: "ReportService" }
+  ImplAuth - satisfies -> R1
+  ImplPago - satisfies -> R2
+  ImplClientes - satisfies -> R3
+  ImplReportes - satisfies -> R4
+        </div>
+        <div>
+          <p class="subtle">Este diagrama enlaza requisitos con componentes implementados para trazabilidad (requisitos → implementación → pruebas).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 5: FAQ técnico -->
+    <div class="card">
+      <span class="label accent">FAQ técnico</span>
+      <div class="grid">
+        <div>
+          <b>¿Cómo adapto estos diagramas a mi stack?</b>
+          <p class="subtle">Mantén contratos entre capas (Controller→Service→Repository) y usa DTOs para entrada/salida. Cambia nombres de nodos según tus paquetes.</p>
+          <b>¿Cómo garantizo idempotencia en pagos?</b>
+          <p class="subtle">Usa claves idempotentes por transacción, registra estado en DB (pending/succeeded/failed) y protege re-intentos con locks optimistas.</p>
+          <b>¿Cómo integro observabilidad?</b>
+          <p class="subtle">Agrega logs estructurados (correlation-id), métricas p95/p99, y trazas distribuidas; instrumenta puntos críticos (pagos, auth, reportes).</p>
+        </div>
+        <div>
+          <b>Buenas prácticas rápidas</b>
+          <ul>
+            <li>Validación server-side y sanitización de entrada.</li>
+            <li>Índices en campos de búsqueda; migraciones versionadas.</li>
+            <li>Outbox/Inbox para consistencia eventual entre servicios.</li>
+            <li>Rate limiting en endpoints sensibles.</li>
+            <li>Backups y restauraciones probadas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Paleta: Primary #2563eb · Secondary #dc2626 · Accent #f59e0b · Success #22c55e · Warning #f59e0b · Error #ef4444
+    </footer>
+  </div>
+</body>
+</html>

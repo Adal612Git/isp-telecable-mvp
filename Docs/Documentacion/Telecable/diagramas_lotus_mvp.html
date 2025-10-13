@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Diagramas — Casos de Uso y Procesos (MVP)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#FAFAFA; --surface:#FFFFFF; --text:#212121; --muted:#616161;
+      --primary:#1E88E5; --secondary:#E53935; --accent:#FFC107;
+      --success:#43A047; --warning:#FB8C00; --error:#D32F2F;
+      --card-shadow: 0 8px 30px rgba(0,0,0,.06);
+      --radius:20px;
+    }
+    html,body{margin:0; background:var(--bg); color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .container{max-width:1180px; margin:40px auto; padding:0 16px}
+    h1{font-size:32px; margin:0 0 8px 0; font-weight:800}
+    p.lead{color:var(--muted); margin:0 0 24px}
+    .card{background:var(--surface); border-radius:var(--radius); padding:20px; margin:18px 0; box-shadow:var(--card-shadow)}
+    .label{display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:600; color:#fff; margin:0 6px 10px 0}
+    .primary{background:var(--primary)} .secondary{background:var(--secondary)} .accent{background:var(--accent); color:#000}
+    .grid{display:grid; grid-template-columns:1fr; gap:18px}
+    @media (min-width: 900px){ .grid{grid-template-columns:1fr 1fr} }
+    .mermaid{border-radius:16px; background:#fff; padding:6px}
+    footer{color:var(--muted); font-size:12px; margin-top:30px}
+  </style>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Inter, sans-serif",
+        primaryColor: "#1E88E5",
+        primaryTextColor: "#ffffff",
+        primaryBorderColor: "#0D47A1",
+        secondaryColor: "#E53935",
+        secondaryTextColor: "#ffffff",
+        tertiaryColor: "#FFC107",
+        tertiaryTextColor: "#000000",
+        lineColor: "#607D8B",
+        textColor: "#212121",
+        background: "#FFFFFF",
+        mainBkg: "#FFFFFF",
+        nodeBorder: "#ECECEC",
+        clusterBkg: "#F5F7FA",
+        clusterBorder: "#CFD8DC",
+        actorBorder: "#1E88E5",
+        actorBkg: "#E3F2FD",
+        signalColor: "#1E88E5",
+        activationBkgColor: "#BBDEFB",
+        activationBorderColor: "#1E88E5"
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Diagramas — Casos de Uso y Procesos (MVP)</h1>
+    <p class="lead">Visualización lógica de alto nivel. Usa el menú del navegador para imprimir o exportar a PDF.</p>
+
+    <div class="card">
+      <span class="label primary">Casos de uso</span>
+      <div class="grid">
+        <!-- UC01 -->
+        <div class="mermaid">
+sequenceDiagram
+  autonumber
+  actor Usuario as Usuario
+  participant Sistema as Sistema Lotus ERP
+  note over Usuario,Sistema: UC01 – Autenticación de usuario
+  Usuario->>Sistema: Introduce email y contraseña
+  Sistema-->>Usuario: Valida credenciales
+  Usuario->>Sistema: Solicita sesión
+  Sistema-->>Usuario: Genera JWT y establece sesión
+  Sistema-->>Usuario: Muestra dashboard
+  alt Credenciales inválidas
+    Sistema-->>Usuario: Mensaje de error y opciones (reintento / recuperar)
+  end
+        </div>
+
+        <!-- UC02 -->
+        <div class="mermaid">
+sequenceDiagram
+  autonumber
+  actor Admin as Administrador
+  participant Backend as Backend / DB
+  note over Admin,Backend: UC02 – Gestión de clientes (CRUD)
+  Admin->>Backend: Listar clientes con filtros
+  Backend-->>Admin: Página de resultados (paginada)
+  Admin->>Backend: Crear nuevo cliente
+  Backend-->>Admin: Validaciones OK / errores
+  Admin->>Backend: Editar datos de cliente
+  Backend-->>Admin: Guarda cambios
+  Admin->>Backend: Eliminar cliente
+  Backend-->>Admin: Borrado lógico (activo=false)
+  alt Validaciones fallidas
+    Backend-->>Admin: Detalle de errores de validación
+  end
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="label primary">Casos de uso</span>
+      <div class="grid">
+        <!-- UC03 -->
+        <div class="mermaid">
+sequenceDiagram
+  autonumber
+  actor Usuario as Usuario
+  participant API as API Ventas
+  participant Pasarela as Pasarela de Pago
+  note over Usuario,API: UC03 – Registrar venta con pago
+  Usuario->>API: Selecciona productos y procede a pagar
+  API-->>Usuario: Calcula total e impuestos
+  Usuario->>API: Elige método de pago
+  API->>Pasarela: Autorizar pago (idempotencia)
+  Pasarela-->>API: Aprobado/Rechazado
+  alt Aprobado
+    API-->>Usuario: Ticket generado
+    API-->>API: Registrar venta y asiento (opcional)
+  else Rechazado
+    API-->>Usuario: Notifica rechazo, permite reintento / cambio
+  end
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="label secondary">Procesos</span>
+      <div class="grid">
+        <!-- P01 Alta de cliente -->
+        <div class="mermaid">
+flowchart TD
+  %% P01 – Alta de cliente
+  A([Inicio]) --> B[Recibir datos de cliente]
+  B --> C[Validar duplicados (email único)]
+  C -->|OK| D[Persistir en DB (activo=true)]
+  C -->|Duplicado| E{¿Corregir email?}
+  E -->|Sí| B
+  E -->|No| Z([Fin])
+  D --> F[Generar evento de auditoría]
+  F --> G[Notificar al administrador]
+  G --> Z([Fin])
+
+  classDef ok fill:#43A047,stroke:#1B5E20,color:#fff;
+  classDef warn fill:#FB8C00,stroke:#E65100,color:#fff;
+  classDef err fill:#D32F2F,stroke:#B71C1C,color:#fff;
+  class D ok; class E warn;
+        </div>
+
+        <!-- P02 Cobro con pasarela -->
+        <div class="mermaid">
+flowchart TD
+  %% P02 – Cobro con pasarela
+  A([Inicio]) --> B[Recibir orden a cobrar]
+  B --> C[Calcular totales e impuestos]
+  C --> D[Enviar cargo a pasarela]
+  D --> E{¿Aprobado?}
+  E -->|Sí| F[Registrar venta en DB]
+  F --> G[Emitir ticket y notificar]
+  G --> Z([Fin])
+  E -->|No| H[Notificar rechazo]
+  H --> I{¿Reintentar?}
+  I -->|Sí| C
+  I -->|No| Z
+
+  classDef ok fill:#1E88E5,stroke:#0D47A1,color:#fff;
+  classDef err fill:#D32F2F,stroke:#B71C1C,color:#fff;
+  class F ok; class H err;
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="label accent">Notas</span>
+      <ul>
+        <li>Los diagramas de secuencia enfatizan las interacciones para programadores (autonumerados).</li>
+        <li>Los diagramas de flujo de procesos incluyen decisiones y clases de color (éxito, advertencia, error).</li>
+        <li>Puedes adaptar la paleta en el bloque <code>themeVariables</code> del script.</li>
+      </ul>
+    </div>
+
+    <footer>
+      Paleta usada: Primary #1E88E5 · Secondary #E53935 · Accent #FFC107 · Success #43A047 · Warning #FB8C00 · Error #D32F2F
+    </footer>
+  </div>
+</body>
+</html>

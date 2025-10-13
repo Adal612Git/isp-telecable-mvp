@@ -1,0 +1,7 @@
+fastapi==0.114.2
+uvicorn[standard]==0.30.6
+prometheus-fastapi-instrumentator==6.1.0
+opentelemetry-sdk==1.21.0
+opentelemetry-instrumentation-fastapi==0.42b0
+opentelemetry-exporter-jaeger-thrift==1.21.0
+python-json-logger==2.0.7

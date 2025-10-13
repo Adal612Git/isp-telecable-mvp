@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Oferta de Proyecto – ISP Telecable 6k→10k</title>
+    <!--
+      Este documento resume la oferta de valor del proyecto de modernización
+      para Telecable.  Se emplea la misma paleta de colores oscura y de alto
+      contraste para garantizar legibilidad y consistencia visual.  La regla
+      60‑30‑10 se aplica en los colores base, secundarios y de acento【576596076794164†L375-L379】, y la
+      selección de texto claro sobre fondo oscuro asegura accesibilidad para la
+      mayoría de los usuarios【155339969338675†L360-L373】.
+    -->
+    <style>
+        :root {
+            --bg-primary: #0a1a2f;
+            --bg-secondary: #152f4d;
+            --accent: #3fa9f5;
+            --text-main: #f5f8fc;
+            --text-muted: #97a8c6;
+            --border: #2b4c72;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 22px; margin-top: 24px; }
+        h3 { font-size: 18px; margin-top: 18px; }
+        p { margin-bottom: 12px; max-width: 800px; }
+        ul { margin-left: 20px; margin-bottom: 12px; }
+        li { margin-bottom: 6px; }
+        .table-wrapper { overflow-x: auto; margin: 12px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 8px; border: 1px solid var(--border); }
+        th { background: var(--bg-secondary); color: var(--accent); font-weight: 600; }
+        tr:nth-child(even) { background: rgba(255, 255, 255, 0.03); }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .note { font-size: 13px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <h1>Oferta del Proyecto</h1>
+    <p>
+        Esta oferta presenta los objetivos, alcances y beneficios de la
+        transformación digital de <strong>Telecable</strong> para escalar de 6&nbsp;000 a
+        10&nbsp;000 usuarios.  El proyecto adopta una arquitectura moderna de
+        microservicios y un enfoque basado en eventos que permite crecer
+        rápidamente, automatizar procesos y mejorar la experiencia de los
+        clientes y del personal operativo.
+    </p>
+    <h2>Valor para el negocio</h2>
+    <ul>
+        <li><strong>Experiencia del cliente mejorada</strong>: portal web y app móvil
+            permiten consultas de saldo, pagos, tickets y seguimientos en tiempo
+            real.  Notificaciones multicanal ofrecen recordatorios y avisos
+            oportunos.</li>
+        <li><strong>Eficiencia operativa</strong>: automatización de facturación,
+            conciliación de pagos y corte/reconexión reduce la carga manual y
+            minimiza errores humanos.</li>
+        <li><strong>Visibilidad total del negocio</strong>: dashboards de BI
+            proporcionan indicadores como ARPU, churn, SLA y MTTR/MTBF para tomar
+            decisiones basadas en datos.</li>
+        <li><strong>Escalabilidad y resiliencia</strong>: la arquitectura
+            desacoplada soporta un aumento de usuarios sin cuellos de botella y
+            garantiza continuidad del servicio ante fallos parciales.</li>
+        <li><strong>Seguridad y cumplimiento</strong>: se implementan cifrado de
+            datos, 2FA y auditoría en línea con las normas de protección de
+            datos, asegurando la confianza de los clientes y la conformidad con
+            CFDI 4.0.</li>
+    </ul>
+
+    <h2>Alcance funcional</h2>
+    <p>
+        La solución cubre end‑to‑end los procesos de un ISP.  A continuación se
+        enumeran los módulos principales incluidos en el alcance:
+    </p>
+    <ul>
+        <li><strong>Clientes &amp; CRM:</strong> altas de clientes, gestión de
+            contratos, zonas de servicio y consentimiento digital.</li>
+        <li><strong>Catálogo &amp; Planes:</strong> definición de planes de
+            internet/TV/telefonía, combos y compatibilidad con tecnologías
+            (GPON/HFC).</li>
+        <li><strong>Facturación &amp; CFDI:</strong> emisión automatizada de
+            facturas, timbrado/cancelación masiva y almacenamiento de CFDI
+            electrónico.</li>
+        <li><strong>Pagos &amp; Conciliación:</strong> recepción de pagos SPEI,
+            tarjetas y Mercado Pago, webhooks idempotentes y conciliación
+            automática.</li>
+        <li><strong>Cortes &amp; Reconexión:</strong> aplicación de cortes
+            masivos por zona con control granular y reconexiones automáticas
+            mediante sagas.</li>
+        <li><strong>Instalaciones &amp; Soporte:</strong> agenda de citas,
+            checklist de instalación, firma electrónica y gestión de tickets
+            con SLA.</li>
+        <li><strong>Inventario &amp; Logística:</strong> control de stock,
+            seriales, depreciación y préstamos de equipo.</li>
+        <li><strong>Notificaciones:</strong> envío de email, SMS, WhatsApp y
+            push, con plantillas versionadas y métricas de entregabilidad.</li>
+        <li><strong>KPIs/BI &amp; Reportes:</strong> dashboards de negocio y
+            exportación de datos para análisis avanzado.</li>
+        <li><strong>Integraciones:</strong> API pública, sandbox para
+            desarrolladores y webhooks para terceros.</li>
+    </ul>
+
+    <h2>Plan de entrega (Roadmap)</h2>
+    <p>
+        La implementación se organiza en olas (iteraciones) para entregar valor
+        incrementalmente.  Cada ola se compone de un conjunto de módulos y
+        servicios.  El cronograma se ajusta a la capacidad del equipo y a las
+        prioridades del negocio.
+    </p>
+    <div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Ola</th>
+                <th>Duración estimada</th>
+                <th>Entregables principales</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ola 0 – Fundaciones</td>
+                <td>2–4 semanas</td>
+                <td>
+                    Infraestructura básica (Kubernetes, PostgreSQL, Redis, MinIO),
+                    CI/CD con GitHub Actions y Argo CD;
+                    autenticación centralizada con Keycloak y configuración inicial
+                    de observabilidad (Prometheus, Grafana, Loki) y service mesh.
+                </td>
+            </tr>
+            <tr>
+                <td>Ola 1 – Core Comercial</td>
+                <td>4–5 semanas</td>
+                <td>
+                    Módulos de CRM, Catálogo de planes y contratos;
+                    facturación por zona y timbrado CFDI 4.0 en sandbox;
+                    integración con pasarelas de pago (Stripe/MP/Conekta) en modo
+                    prueba y notificaciones básicas.
+                </td>
+            </tr>
+            <tr>
+                <td>Ola 2 – Operación de Campo &amp; Red</td>
+                <td>5–6 semanas</td>
+                <td>
+                    Work Orders y app móvil para instalaciones;
+                    aprovisionamiento de red (GPON/HFC) y rollback seguro;
+                    cortes automáticos y excepciones de soporte;
+                    motor de reglas de negocio y feature flags.
+                </td>
+            </tr>
+            <tr>
+                <td>Ola 3 – Soporte &amp; Calidad</td>
+                <td>4–5 semanas</td>
+                <td>
+                    Gestión de tickets y SLA, macros/KMS y encuesta CSAT/NPS;
+                    diagnósticos de red (ping/traceroute/torch) y tickets
+                    automáticos por degradación.
+                </td>
+            </tr>
+            <tr>
+                <td>Ola 4 – Inventario &amp; BI</td>
+                <td>4–6 semanas</td>
+                <td>
+                    Control de inventario con seriales y depreciación;
+                    dashboards avanzados (cohortes, ARPU, churn, MTTR/MTBF);
+                    apertura de API pública, webhooks y sandbox de integraciones;
+                    herramientas de gobernanza de datos y data lake.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h2>Equipo y responsabilidades</h2>
+    <p>
+        Para ejecutar el proyecto se requiere un equipo multidisciplinar.  A
+        continuación se describe una propuesta de equipo mínimo y sus
+        responsabilidades principales:
+    </p>
+    <ul>
+        <li><strong>Tech Lead / Arquitecto:</strong> define estándares
+            tecnológicos, diseña la arquitectura y guía al equipo.</li>
+        <li><strong>Back‑End Developers (2–4):</strong> implementan
+            microservicios en NestJS/Spring Boot, integraciones con PAC y
+            pasarelas de pago, y gestionan bases de datos.</li>
+        <li><strong>Front‑End Web (2):</strong> desarrollan el backoffice y el
+            portal web (React + Next.js) siguiendo buenas prácticas de accesibilidad.</li>
+        <li><strong>Mobile Developers (1–2):</strong> construyen la app móvil
+            para técnicos y clientes (React Native o Flutter).</li>
+        <li><strong>Data/DevOps (1–2):</strong> configuran ClickHouse,
+            implementan pipelines ETL/ELT con dbt y Airflow, gestionan la
+            observabilidad y administran la infraestructura como código (Terraform
+            y Helm).</li>
+        <li><strong>QA/Automation (1–2):</strong> diseñan pruebas
+            end‑to‑end, pruebas de rendimiento y pruebas de contrato; automatizan
+            despliegues.</li>
+        <li><strong>PM/BA (1):</strong> prioriza el backlog, alinea los requisitos
+            con las áreas de negocio y mide el avance mediante OKRs.</li>
+    </ul>
+
+    <h2>KPI y métricas</h2>
+    <p>
+        Para medir el éxito del proyecto se establecen indicadores clave de
+        desempeño.  Estos indicadores se incorporarán en los dashboards de BI y
+        serán revisados periódicamente.
+    </p>
+    <div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Categoría</th>
+                <th>KPI / SLO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Comercial</td>
+                <td>Altas/día, ARPU, churn mensual, tasa de cobro por canal</td>
+            </tr>
+            <tr>
+                <td>Operación</td>
+                <td>Tiempo promedio de instalación, cumplimiento de ruta,
+                    first‑pass yield</td>
+            </tr>
+            <tr>
+                <td>Red &amp; Soporte</td>
+                <td>MTTR/MTBF, porcentaje de tickets P1 dentro de SLA,
+                    pérdida/latencia promedio</td>
+            </tr>
+            <tr>
+                <td>Finanzas</td>
+                <td>% de facturas timbradas a tiempo, conciliación &lt;24 h,
+                    errores por lote de facturación</td>
+            </tr>
+            <tr>
+                <td>Plataforma</td>
+                <td>Disponibilidad por servicio (&gt;99.9 %), p95 de APIs críticas
+                    (&lt;300 ms), tasa de reintentos &lt;1 %, fallas de jobs &lt;0.5 %</td>
+            </tr>
+            <tr>
+                <td>Arquitectura</td>
+                <td>Tiempo para integrar nuevo proveedor OLT (&lt;2 semanas),
+                    agregar pasarela de pago (&lt;1 semana), retraso de datos
+                    (&lt;30 s), propagación de feature flags (&lt;10 s), generación de
+                    documentos p95 (&lt;2 s)</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h2>Riesgos y mitigaciones</h2>
+    <p>
+        Identificamos riesgos principales y planteamos acciones para mitigarlos:
+    </p>
+    <ul>
+        <li><strong>Integraciones heterogéneas de red:</strong> se utiliza un
+            patrón <em>adapter</em> y sandbox por fabricante para aislar drivers de
+            GPON/HFC, habilitando feature flags para activar proveedores de forma
+            gradual.</li>
+        <li><strong>Idempotencia en facturación/pagos:</strong> se implementan
+            claves idempotentes y el patrón Saga para garantizar consistencia
+            incluso ante fallos【170525415369720†L207-L213】.</li>
+        <li><strong>Cortes masivos:</strong> se procesan en lotes por zona con
+            límites de tasa hacia equipos de red y canary batches para detectar
+            problemas rápidamente.</li>
+        <li><strong>Protección de datos personales:</strong> cifrado a nivel de
+            campo, mascarado en UI y logs, retención configurable y bitácora
+            inmutable por 13 meses.</li>
+        <li><strong>Escalabilidad:</strong> particionamiento por zona/mes,
+            índices compuestos, lectura con réplicas, uso de ClickHouse para
+            métricas de red y almacenamiento de eventos en data lake.</li>
+        <li><strong>Soporte en campo:</strong> la app móvil es offline‑first,
+            con colas locales y sincronización transaccional para garantizar
+            funcionamiento sin conexión.</li>
+    </ul>
+    <h2>Conclusión</h2>
+    <p>
+        Esta oferta propone un camino claro y estructurado para modernizar la
+        operación de Telecable y prepararla para un crecimiento sostenido.  La
+        combinación de arquitectura de microservicios, enfoque en eventos y
+        herramientas modernas permite reducir tiempos de entrega, mejorar la
+        satisfacción de los usuarios y optimizar los procesos internos.  Se
+        recomienda iniciar con las fundaciones técnicas y construir de forma
+        incremental cada módulo, validando siempre con las áreas de negocio.
+    </p>
+    <p class="note">
+        La información de esta oferta se basa en las historias de usuario y
+        requisitos recopilados hasta la fecha.  Cualquier cambio en las
+        prioridades o alcance deberá reflejarse en el roadmap y plan de equipo.
+    </p>
+</body>
+</html>

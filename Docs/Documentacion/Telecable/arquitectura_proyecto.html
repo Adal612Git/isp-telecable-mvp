@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Arquitectura de Referencia – ISP Telecable 6k→10k</title>
+    <!--
+      La paleta de colores de este documento sigue la regla de diseño 60‑30‑10.
+      Un tono oscuro forma el 60 % del fondo, un tono secundario se usa en el 30 % de
+      los contenedores y un color de acento azul representa el 10 %.  Esta combinación
+      está recomendada para lograr equilibrio visual y confort【576596076794164†L375-L379】.  La
+      tipografía clara sobre fondo oscuro proporciona el máximo contraste según las
+      guías de la USWDS para accesibilidad【155339969338675†L360-L373】, lo que favorece la
+      legibilidad para la mayoría de los usuarios.
+    -->
+    <style>
+        :root {
+            --bg-primary: #0a1a2f;     /* 60 % – tono base oscuro */
+            --bg-secondary: #152f4d;  /* 30 % – paneles y tarjetas */
+            --accent: #3fa9f5;        /* 10 % – botones y destacados */
+            --text-main: #f5f8fc;     /* texto principal, alto contraste */
+            --text-muted: #97a8c6;    /* texto secundario */
+            --border: #2b4c72;        /* bordes y divisores */
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: 28px;
+        }
+        h2 {
+            font-size: 22px;
+            margin-top: 24px;
+        }
+        h3 {
+            font-size: 18px;
+            margin-top: 18px;
+        }
+        p {
+            margin-bottom: 12px;
+            max-width: 800px;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+        .card h4 {
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+        .card .tech-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .card .tech-list li {
+            margin-bottom: 4px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid var(--border);
+        }
+        th {
+            background: var(--bg-secondary);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <h1>Arquitectura de Referencia</h1>
+    <p>
+        Este documento describe la arquitectura técnica recomendada para escalar el
+        proveedor de servicios de internet <strong>Telecable</strong> de 6&nbsp;000 a 10&nbsp;000
+        suscriptores.  La solución se basa en <em>microservicios</em> ligeros con
+        <em>bounded contexts</em> según <a href="https://martinfowler.com/bliki/BoundedContext.html">Domain‑Driven Design (DDD)</a>.
+        DDD propone dividir el dominio en contextos bien definidos para que cada
+        modelo sea coherente y mantenga su propio lenguaje【732312914853780†L90-L122】.  Esta
+        separación facilita que los equipos trabajen de manera independiente y
+        reduzcan las dependencias entre servicios.
+    </p>
+    <p>
+        La infraestructura se apoya en contenedores orquestados con Kubernetes,
+        mensajería asíncrona con Kafka y RabbitMQ, almacenamiento particionado en
+        PostgreSQL y ClickHouse, un data lake para analítica y mecanismos de
+        observabilidad y seguridad de extremo a extremo.  Las secciones
+        siguientes detallan los contextos de negocio, las tecnologías clave y
+        cómo se relacionan entre sí.
+    </p>
+
+    <h2>Principios de diseño</h2>
+    <p>
+        Para lograr una plataforma escalable, robusta y fácil de mantener, se
+        siguen los siguientes principios:
+    </p>
+    <ul>
+        <li><strong>Bounded Contexts</strong>: cada área de negocio (Clientes, Facturación,
+            Pagos, Inventario, etc.) se implementa como un conjunto de
+            microservicios con su propio modelo de datos y lenguaje, tal como
+            propone DDD【732312914853780†L90-L122】.</li>
+        <li><strong>Comunicaciones asíncronas</strong>: se emplean colas y tópicos de
+            mensajería (Kafka) para publicar eventos de dominio y RabbitMQ para
+            orquestar flujos operativos.  Los consumidores son idempotentes,
+            es decir, procesan de forma segura mensajes duplicados
+            almacenando los identificadores procesados para evitar efectos
+            adversos【986861340287156†L21-L52】.</li>
+        <li><strong>Sagas e idempotencia</strong>: los procesos que abarcan varios
+            microservicios utilizan el patrón Saga.  Este patrón asegura que
+            todas las operaciones se completen o que se apliquen transacciones de
+            compensación; estas transacciones deben ser idempotentes y
+            reintentables【170525415369720†L207-L213】.</li>
+        <li><strong>Particionamiento por zona y fecha</strong>: los datos de clientes y
+            facturación se particionan por zona geográfica y período para
+            optimizar consultas y permitir escalabilidad horizontal.</li>
+        <li><strong>Observabilidad</strong>: se instrumentan métricas, trazas y logs con
+            OpenTelemetry, Prometheus/Grafana y Loki/Tempo, siguiendo buenas
+            prácticas de monitorización.</li>
+        <li><strong>Seguridad y privacidad</strong>: autenticación federada con
+            Keycloak (OIDC), autorización RBAC/ABAC y cifrado de datos sensibles
+            (PII) utilizando Vault y pgcrypto.  Los servicios se comunican vía
+            TLS con mutual TLS a través de un service mesh (Istio o Linkerd).
+        </li>
+        <li><strong>Governanza y reglas de negocio</strong>: se introducen servicios de
+            gobernanza de datos, un motor de reglas de negocio configurable y un
+            servicio de documentos para generar PDF y gestionar firmas
+            digitales.</li>
+    </ul>
+
+    <h2>Contextos de dominio y microservicios</h2>
+    <p>
+        La tabla siguiente resume cada contexto, los microservicios principales
+        que lo componen y las tecnologías base.  Las descripciones son breves
+        para facilitar la lectura; las interacciones se detallan más abajo.
+    </p>
+    <div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Contexto de dominio</th>
+                <th>Microservicios</th>
+                <th>Tecnologías</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Clientes &amp; CRM</td>
+                <td>Gestión de clientes, perfiles, zonas, contratos</td>
+                <td>NestJS / Spring Boot, PostgreSQL (particionada), Redis</td>
+            </tr>
+            <tr>
+                <td>Catálogo &amp; Planes</td>
+                <td>Planes de internet/TV/telefonía, combos y compatibilidad</td>
+                <td>NestJS, PostgreSQL, Redis</td>
+            </tr>
+            <tr>
+                <td>Facturación &amp; CFDI</td>
+                <td>Emisión de facturas, timbrado/cancelación, notas de crédito</td>
+                <td>NestJS, Servicio de CFDI (PAC), PostgreSQL</td>
+            </tr>
+            <tr>
+                <td>Pagos &amp; Conciliación</td>
+                <td>Recepción de pagos (SPEI, tarjetas), webhooks, conciliación</td>
+                <td>NestJS, Stripe/MP/Conekta SDK, Kafka, Redis</td>
+            </tr>
+            <tr>
+                <td>Instalaciones &amp; Work Orders</td>
+                <td>Agenda, checklist, hojas de instalación, firma/fotos</td>
+                <td>Spring Boot, Mobile App (React Native), PostgreSQL, MinIO</td>
+            </tr>
+            <tr>
+                <td>Red (GPON/HFC) &amp; Provisioning</td>
+                <td>Gestión de OLT GPON, nodos HFC, aprovisionamiento de ONTs/CPE</td>
+                <td>Python FastAPI para drivers de red, SNMP/NETCONF/SSH, ClickHouse
+                para métricas</td>
+            </tr>
+            <tr>
+                <td>Tickets &amp; SLA</td>
+                <td>Gestión de tickets de soporte, macros/KMS, CSAT/NPS</td>
+                <td>NestJS, OpenSearch para búsqueda de conocimiento, PostgreSQL</td>
+            </tr>
+            <tr>
+                <td>Inventario &amp; Logística</td>
+                <td>Catálogo de ítems, stock, movimientos, depreciación</td>
+                <td>Spring Boot, PostgreSQL, Redis; escaneo QR/CB</td>
+            </tr>
+            <tr>
+                <td>Notificaciones</td>
+                <td>Envía email, SMS, WhatsApp y push; plantillas y seguimiento</td>
+                <td>NestJS, AWS SES/Twilio/WhatsApp API, RabbitMQ</td>
+            </tr>
+            <tr>
+                <td>KPIs/BI &amp; Reportes</td>
+                <td>Dashboards, cohortes, ARPU, churn, SLA, MTTR/MTBF</td>
+                <td>ClickHouse, dbt, Airflow, Grafana, Data Lake en S3</td>
+            </tr>
+            <tr>
+                <td>Integraciones &amp; Sandbox</td>
+                <td>API pública, webhooks, entornos de pruebas</td>
+                <td>API Gateway (Kong), OpenAPI, Keycloak, Kafka</td>
+            </tr>
+            <tr>
+                <td>Seguridad, Roles &amp; Permisos</td>
+                <td>Gestión de usuarios, autenticación OIDC, RBAC/ABAC</td>
+                <td>Keycloak, HashiCorp Vault, Service Mesh, Audit Log</td>
+            </tr>
+            <tr>
+                <td>Backoffice &amp; Automatizaciones</td>
+                <td>Panel administrativo, colas de trabajos, orquestación de jobs</td>
+                <td>React/Next.js, NestJS, Temporal.io o BullMQ, Cron centralizado</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h2>Flujos y relaciones</h2>
+    <p>
+        A continuación se describen algunos de los flujos principales entre los
+        contextos.  Para cada flujo se indican los eventos y las acciones
+        asociadas, así como las tecnologías involucradas.
+    </p>
+    <h3>Alta de un nuevo cliente</h3>
+    <p>
+        El proceso de alta comienza en el contexto de <strong>Clientes &amp; CRM</strong>.
+    </p>
+    <ul>
+        <li>Un usuario de ventas registra datos básicos (nombre, dirección,
+            referencia) mediante la aplicación web (React + Next.js).  La
+            aplicación consume las APIs de CRM (NestJS), que validan el RFC y
+            almacenan la información en PostgreSQL.</li>
+        <li>Se emite un evento <code>cliente_creado</code> en Kafka.  Otros
+            servicios suscritos (Facturación, Pagos, Notificaciones) reaccionan
+            para preparar recursos (por ejemplo, crear cuentas de facturación o
+            generar plantillas de email de bienvenida).</li>
+        <li>El contexto de <strong>Plan &amp; Catálogo</strong> determina la
+            disponibilidad de planes para la zona del cliente y envía una lista
+            de opciones.  Esta interacción se realiza mediante solicitudes REST
+            protegidas con JWT y mTLS.</li>
+        <li>Si el cliente acepta un plan, se emite el evento
+            <code>suscripcion_creada</code> y se procede a programar la
+            instalación a través del servicio de <strong>Work Orders</strong>.
+        </li>
+    </ul>
+    <h3>Facturación y cobro</h3>
+    <ul>
+        <li>El servicio de facturación genera facturas mensuales basadas en el
+            ciclo de facturación de la zona.  El microservicio se comunica con
+            el PAC (proveedor de timbrado) para sellar los CFDI y almacena los
+            XML/PDF en S3/MinIO.</li>
+        <li>Se emite el evento <code>factura_emitida</code> en Kafka.  El
+            servicio de <strong>Pagos</strong> escucha este evento y actualiza
+            el saldo pendiente del cliente.</li>
+        <li>Cuando un cliente realiza un pago (SPEI, tarjeta o Mercado Pago),
+            el gateway de pagos envía un webhook al microservicio de pagos.
+            Las notificaciones se procesan de forma idempotente: se registra el
+            identificador del pago y se descartan duplicados【986861340287156†L21-L52】.</li>
+        <li>Al confirmar el pago se publica <code>pago_confirmado</code>.  Si el
+            saldo se regulariza, se detienen acciones de corte y se actualiza la
+            cuenta en el CRM.</li>
+    </ul>
+    <h3>Cortes y reconexión</h3>
+    <ul>
+        <li>Cuando la factura vence y el cliente acumula cierta mora, el motor
+            de reglas de negocio decide iniciar el proceso de corte.  Esta
+            decisión se basa en reglas configurables por zona y tipo de plan.</li>
+        <li>El microservicio de facturación envía el comando
+            <code>cortar_servicio</code> a través de RabbitMQ al servicio de
+            provisión de red.  Este servicio ejecuta el corte en el OLT (para
+            GPON) o en el nodo HFC y publica el evento
+            <code>corte_aplicado</code>.</li>
+        <li>Cuando se recibe el pago se emite <code>corte_revertido</code> y el
+            proceso de reconexión utiliza transacciones de compensación
+            idempotentes, siguiendo el patrón Saga【170525415369720†L207-L213】.</li>
+    </ul>
+
+    <h3>Instalaciones y soporte</h3>
+    <ul>
+        <li>El contexto de Work Orders programa la instalación y asigna un
+            técnico disponible.  Las citas se almacenan en PostgreSQL y se
+            sincronizan con la app móvil (React Native) para uso en campo.</li>
+        <li>En el día de la instalación, el técnico utiliza la app móvil para
+            completar la checklist, hacer pruebas de velocidad y firmar
+            electrónicamente.  El PDF de la hoja de instalación se genera
+            mediante el servicio de documentos y se almacena en S3.</li>
+        <li>Si se detectan incidencias, se crea un <code>ticket</code> en el
+            contexto de <strong>Tickets &amp; SLA</strong> y se establece el
+            acuerdo de nivel de servicio (SLA).  Las métricas de
+            satisfacción (CSAT/NPS) se recogen mediante encuestas enviadas por
+            el servicio de notificaciones.</li>
+    </ul>
+
+    <h2>Capas transversales</h2>
+    <p>
+        Además de los contextos de negocio, la plataforma incorpora servicios
+        transversales para mejorar la gobernanza, la seguridad y la calidad del
+        producto.
+    </p>
+    <ul>
+        <li><strong>Service Mesh</strong>: Istio o Linkerd proporcionan mTLS,
+            balanceo de tráfico y observabilidad de red sin modificar el código de los
+            microservicios.</li>
+        <li><strong>Feature Flags</strong>: un servicio de flags permite activar o
+            desactivar funcionalidades por zona o por cohortes de usuarios sin
+            redeploy, facilitando pruebas A/B y rollouts graduales.</li>
+        <li><strong>Motor de Reglas</strong>: centraliza reglas de negocio
+            relacionadas con cortes, prorrateo, promociones y asignación de
+            técnicos.  Los administradores pueden ajustar reglas desde el
+            Backoffice.</li>
+        <li><strong>Servicio de Documentos</strong>: gestiona plantillas, genera
+            PDFs (contratos, hojas de instalación, recibos) y aplica firmas
+            digitales con sellos de tiempo.</li>
+        <li><strong>Gobernanza de Datos</strong>: mantiene un catálogo de datos,
+            aplica políticas de calidad y retención y gestiona el linaje de
+            datos para cumplir normativas.</li>
+        <li><strong>Data Lake</strong>: recopila eventos de red (NetFlow/sFlow),
+            métricas de consumo y datos operativos.  Estos datos se almacenan
+            en formato columnar y se consultan con ClickHouse y herramientas de
+            BI para análisis en tiempo casi real y detección de anomalías.</li>
+    </ul>
+
+    <h2>Buenas prácticas de redacción y diseño de documentación</h2>
+    <p>
+        Para que esta arquitectura sea comprensible para desarrolladores
+        novatos, se aplicaron varias recomendaciones de documentación.  En
+        particular, se utilizó un lenguaje claro y sin jerga técnica innecesaria;
+        escribir en <em>plain language</em> facilita que lectores de distinto
+        nivel comprendan rápidamente los conceptos【484010680233370†L268-L281】.  También se
+        organizaron los contenidos de manera lógica, agrupando temas básicos
+        antes de abordar detalles avanzados, tal como sugieren guías de
+        documentación【484010680233370†L262-L276】.  Se emplearon listas y tablas para
+        reducir la sensación de “muro de texto” y se añadieron ejemplos
+        concretos para ilustrar cada flujo.
+    </p>
+    <p class="note">
+        Nota: este documento se entrega como referencia inicial.  Los equipos
+        técnicos deben adaptar la implementación a sus necesidades específicas y
+        revisar periódicamente las reglas de negocio y configuraciones.
+    </p>
+</body>
+</html>
