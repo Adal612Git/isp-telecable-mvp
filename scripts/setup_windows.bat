@@ -1,0 +1,214 @@
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
+
+set "NOPAUSE=0"
+if not "%~1"=="" goto parse_args
+goto args_done
+
+:parse_args
+if /i "%~1"=="--no-pause" (
+    set "NOPAUSE=1"
+    shift
+    goto parse_args
+)
+if /i "%~1"=="--help" (
+    call :usage
+    exit /b 0
+)
+echo Uso: %~nx0 [--no-pause]
+exit /b 1
+
+:args_done
+
+set "EXIT_CODE=0"
+set "PUSHED=0"
+set "SCRIPT_DIR=%~dp0"
+
+for %%i in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fi"
+if exist "%REPO_ROOT%\docker-compose.yml" (
+    pushd "%REPO_ROOT%"
+    set "PUSHED=1"
+) else if exist "%REPO_ROOT%\isp-telecable-mvp\docker-compose.yml" (
+    set "REPO_ROOT=%REPO_ROOT%\isp-telecable-mvp"
+    pushd "%REPO_ROOT%"
+    set "PUSHED=1"
+) else (
+    call :error No se encontro docker-compose.yml. Ejecuta este script desde la carpeta scripts del proyecto.
+    goto fatal
+)
+set "REPO_ROOT=%CD%"
+
+call :banner
+call :info Directorio detectado: %REPO_ROOT%
+
+REM --- Verificar requisitos ---
+call :require_cmd docker "No se encontro Docker en PATH. Instala Docker Desktop y vuelve a ejecutar este script."
+if errorlevel 1 goto fatal
+
+docker info >nul 2>&1
+if errorlevel 1 (
+    call :error Docker Desktop no responde. Asegurate de que Docker este en ejecucion.
+    goto fatal
+)
+call :ok Docker responde correctamente.
+
+docker compose version >nul 2>&1
+if errorlevel 1 (
+    call :error No se encontro 'docker compose'. Actualiza Docker Desktop o habilita el plugin de Compose.
+    goto fatal
+)
+call :ok Docker Compose disponible.
+
+where bash >nul 2>&1
+if errorlevel 1 (
+    call :error No se encontro 'bash'. Instala Git Bash o habilita WSL para ejecutar los scripts auxiliares.
+    goto fatal
+)
+call :ok Bash disponible (Git Bash o WSL).
+
+REM --- Preparar archivos de entorno ---
+if not exist ".env" (
+    if exist ".env.example" (
+        copy /y ".env.example" ".env" >nul
+        if errorlevel 1 (
+            call :error No se pudo copiar .env.example a .env. Revisa permisos del directorio.
+            goto fatal
+        )
+        call :ok Archivo .env generado desde .env.example.
+    ) else (
+        call :error No existe .env ni .env.example. Agrega uno manualmente y vuelve a ejecutar.
+        goto fatal
+    )
+) else (
+    call :info .env ya existe, se reutilizara.
+)
+
+call :info Asignando puertos disponibles (.env.ports)...
+bash scripts/allocate_ports.sh --write .env.ports
+if errorlevel 1 (
+    call :error Fallo scripts/allocate_ports.sh. Ejecuta 'bash scripts/allocate_ports.sh --write .env.ports' manualmente para revisar el problema.
+    goto fatal
+)
+call :ok Puertos asignados en .env.ports.
+
+REM Cargar variables principales desde .env.ports para mensajes finales
+for /f "usebackq tokens=1,2 delims==" %%A in (".env.ports") do (
+    set "line=%%A"
+    if defined line (
+        if not "!line:~0,1!"=="#" (
+            set "%%A=%%B"
+        )
+    )
+)
+
+REM --- Crear red docker si falta ---
+docker network inspect telecable-net >nul 2>&1
+if errorlevel 1 (
+    call :info Creando red Docker telecable-net...
+    docker network create telecable-net >nul 2>&1
+    if errorlevel 1 (
+        call :error No se pudo crear la red telecable-net. Revisa permisos de Docker.
+        goto fatal
+    )
+    call :ok Red telecable-net creada.
+) else (
+    call :info Red telecable-net ya existe.
+)
+
+REM --- Levantar infraestructura y servicios ---
+call :info Levantando infraestructura y servicios (puede tardar varios minutos)...
+docker compose --env-file ".env.ports" -f "infra/docker-compose.yml" -f "docker-compose.yml" up -d --build
+if errorlevel 1 (
+    call :error El comando docker compose up fallo. Ejecuta 'docker compose --env-file .env.ports -f infra/docker-compose.yml -f docker-compose.yml up' para ver el detalle.
+    goto fatal
+)
+call :ok Servicios levantados correctamente.
+
+REM --- Seed de datos ---
+call :info Ejecutando seed de datos de prueba...
+bash scripts/seed.sh
+if errorlevel 1 (
+    call :error El seed fallo. Revisa scripts/seed.sh y el contenedor infra-postgres.
+    goto fatal
+)
+call :ok Seed completado.
+
+REM --- Resumen final ---
+call :info Resumen de contenedores activos:
+docker compose --env-file ".env.ports" -f "infra/docker-compose.yml" -f "docker-compose.yml" ps
+if errorlevel 1 (
+    call :warn No se pudo obtener el listado de contenedores. Ejecuta 'docker compose ps' manualmente.
+)
+
+call :success Proceso finalizado.
+call :info Portal Cliente: http://localhost:!HOST_PORTAL_PORT!
+call :info Backoffice: http://localhost:!HOST_BACKOFFICE_PORT!
+goto end
+
+:fatal
+set "EXIT_CODE=1"
+call :fail Setup interrumpido. Corrige el error anterior y vuelve a ejecutar scripts\setup_windows.bat.
+goto end
+
+:end
+set "__EXIT_CODE=%EXIT_CODE%"
+if "%PUSHED%"=="1" popd
+if "%NOPAUSE%"=="0" call :pause_if_needed %__EXIT_CODE%
+endlocal & exit /b %__EXIT_CODE%
+
+REM ===========================
+REM  Funciones auxiliares
+REM ===========================
+:usage
+echo.
+echo Uso: %~nx0 [--no-pause]
+echo    --no-pause    Omite la pausa final (para terminales ya abiertas).
+goto :eof
+
+:banner
+echo ============================================================
+echo    ISP Telecable MVP - Setup Automatizado para Windows
+echo ============================================================
+goto :eof
+
+:info
+echo [INFO ] %*
+goto :eof
+
+:ok
+echo [ OK  ] %*
+goto :eof
+
+:warn
+echo [WARN ] %*
+goto :eof
+
+:error
+echo [ERROR] %*
+goto :eof
+
+:success
+echo [DONE ] %*
+goto :eof
+
+:fail
+echo [FAIL ] %*
+goto :eof
+
+:pause_if_needed
+echo.
+if "%~1"=="0" (
+    echo Presiona una tecla para cerrar esta ventana...
+) else (
+    echo Presiona una tecla para revisar el error...
+)
+pause >nul
+goto :eof
+
+:require_cmd
+where %~1 >nul 2>&1
+if errorlevel 1 (
+    call :error %~2
+    exit /b 1
+)
+exit /b 0

@@ -1,6 +1,0 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="1.2977150000000002">
-<testsuite name="alta-cliente.spec.ts" timestamp="2025-10-13T04:50:39.567Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.55" errors="0">
-<testcase name="Flujo Nuevo Cliente: alta→contrato→facturación" classname="alta-cliente.spec.ts" time="0.55">
-</testcase>
-</testsuite>
-</testsuites>
