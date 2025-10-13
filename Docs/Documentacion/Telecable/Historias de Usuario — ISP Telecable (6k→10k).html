@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)file:///C:/Users/romer/OneDrive/Pictures/wisphub_user_stories.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historias de Usuario — ISP Telecable (6k→10k)</title>
+<style>
+:root{
+  --bg:#0b1020; --card:#121735; --ink:#eaf0ff; --muted:#a6b0d8; --accent:#6aa0ff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#0a0f1f,#0e1330 60%,#0b1020);color:var(--ink)}
+header{position:sticky;top:0;background:#0e1330d9;backdrop-filter:blur(6px);padding:16px 24px;border-bottom:1px solid #1e2657;z-index:1000}
+h1{margin:0;font-size:20px;font-weight:700}
+.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.controls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+input,select{background:#0c1230;border:1px solid #1e2657;color:var(--ink);padding:10px;border-radius:10px;outline:none}
+input::placeholder{color:#7f89b3}
+main{padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{background:linear-gradient(180deg,#141a3a,#0f1432);border:1px solid #1d2554;border-radius:14px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.id{font-size:11px;color:#9db0ff;background:#10173a;border:1px solid #1e2657;padding:4px 8px;border-radius:999px}
+.tag{font-size:11px;color:#8fb2ff;background:#0e183c;border:1px solid #203173;padding:2px 8px;border-radius:999px;margin-left:6px}
+.title{font-size:16px;font-weight:700;margin:6px 0 8px 0}
+.story{font-size:13px;line-height:1.45;color:#d7defa}
+.crit{margin-top:8px}
+.crit h4{margin:0 0 6px 0;font-size:12px;color:#a9b6ff;text-transform:uppercase;letter-spacing:.06em}
+.crit ul{margin:0;padding-left:18px}
+.crit li{font-size:13px;margin:4px 0}
+.meta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pill{font-size:11px;border:1px solid #32407a;background:#0d1538;padding:4px 8px;border-radius:999px;color:#cdd7ff}
+.pill.ok{border-color:#0c7a5f;color:#9dffd8}
+footer{color:#9aa8e5;text-align:center;padding:18px 10px;border-top:1px solid #1e2657;margin-top:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Historias de Usuario — ISP Telecable (6k→10k)</h1>
+  <div class="sub">Generado: 2025-10-11 00:53 • Total tarjetas: <span id="count">62</span> • Filtros activos: texto/rol/módulo</div>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Buscar texto en tarjetas…">
+    <select id="role">
+      <option value="ALL" selected="">Todos los roles</option>
+      <option value="ADMIN">Administrador / Dueño del ISP</option><option value="SALES">Ventas / Atención</option><option value="FIN">Finanzas / Cobranzas</option><option value="TECH">Técnicos de instalación / Campo</option><option value="SUP">Soporte técnico / NOC</option><option value="INV">Almacén / Logística</option><option value="CUST">Cliente final / App</option><option value="OPS">Operaciones / Plataforma</option><option value="SEC">Seguridad / Cumplimiento</option><option value="DATA">Analítica / BI</option>
+    </select>
+    <select id="module">
+      <option value="ALL" selected="">Todos los módulos</option>
+      <option value="Clientes">Clientes</option><option value="Facturación">Facturación</option><option value="Pagos">Pagos</option><option value="Cortes">Cortes</option><option value="TV/Telefonía">TV/Telefonía</option><option value="Instalaciones">Instalaciones</option><option value="Tickets">Tickets</option><option value="Red/Router">Red/Router</option><option value="Notificaciones">Notificaciones</option><option value="Mapa/Geo">Mapa/Geo</option><option value="Inventario">Inventario</option><option value="Reportes">Reportes</option><option value="Portal Cliente">Portal Cliente</option><option value="Integraciones">Integraciones</option><option value="CFDI">CFDI</option><option value="Roles/Permisos">Roles/Permisos</option><option value="SLA/Calidad">SLA/Calidad</option><option value="KPIs/BI">KPIs/BI</option><option value="Backoffice">Backoffice</option><option value="App Móvil">App Móvil</option><option value="Automatizaciones">Automatizaciones</option><option value="Importación/Exportación">Importación/Exportación</option><option value="Auditoría/Logs">Auditoría/Logs</option><option value="Seguridad">Seguridad</option><option value="Escalabilidad">Escalabilidad</option>
+    </select>
+  </div>
+</header>
+<main>
+  <section class="grid">
+    
+    <article class="card" data-role="ADMIN" data-module="Roles/Permisos">
+      <div class="head">
+        <div class="id">US-ADMIN-ROL-22839</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Roles/Permisos</span></div>
+      </div>
+      <div class="title">Gestión de roles y permisos</div>
+      <div class="story">As admin quiero definir roles y permisos granulares para que cada área solo acceda a lo que necesita.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Puedo crear/editar/eliminar roles.</li><li>Puedo asignar permisos por módulo/acción.</li><li>Un usuario ve y ejecuta solo lo permitido.</li><li>Registro de cambios en bitácora.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Roles/Permisos</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Clientes">
+      <div class="head">
+        <div class="id">US-ADMIN-CLI-50648</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Clientes</span></div>
+      </div>
+      <div class="title">Zonas de servicio con calendario de pago</div>
+      <div class="story">Como admin quiero configurar zonas con día de facturación y corte para automatizar procesos por zona.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Crear zona con reglas de facturación/corte.</li><li>Asignar clientes a zona.</li><li>Tareas automáticas por zona (generar facturas, avisos, corte).</li><li>Pruebas en sandbox antes de activar.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Clientes</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="TV/Telefonía">
+      <div class="head">
+        <div class="id">US-ADMIN-TV/-45851</div>
+        <div><span class="tag">ADMIN</span><span class="tag">TV/Telefonía</span></div>
+      </div>
+      <div class="title">Catálogo de planes (internet, TV, combos)</div>
+      <div class="story">Como admin quiero definir planes de fibra/TV y combos para asignarlos a clientes.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>CRUD de planes con velocidad/canales/precio.</li><li>Compatibilidad por tecnología (GPON/HFC).</li><li>Versionado de plan y vigencias.</li><li>Validación de dependencia con servicios activos.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: TV/Telefonía</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Integraciones">
+      <div class="head">
+        <div class="id">US-ADMIN-INT-65015</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Integraciones</span></div>
+      </div>
+      <div class="title">Pasarelas de pago múltiples</div>
+      <div class="story">Como admin quiero integrar pasarelas (SPEI, tarjetas, MP, Stripe) para ampliar métodos de cobro.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Configurar credenciales por pasarela.</li><li>Webhook para conciliación automática.</li><li>Fallback a pago manual.</li><li>Pruebas de sandbox y monitoreo de fallas.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Integraciones</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="CFDI">
+      <div class="head">
+        <div class="id">US-ADMIN-CFD-79359</div>
+        <div><span class="tag">ADMIN</span><span class="tag">CFDI</span></div>
+      </div>
+      <div class="title">Configuración fiscal / CFDI 4.0 (MX)</div>
+      <div class="story">Como admin quiero emitir CFDI 4.0 para cumplir obligaciones fiscales.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Captura de datos fiscales y validación del SAT.</li><li>Timbrado, cancelación y re-factura.</li><li>Complemento de pago y relación entre CFDI.</li><li>Acuses y XML/PDF descargables.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: CFDI</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Reportes">
+      <div class="head">
+        <div class="id">US-ADMIN-REP-92911</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Reportes</span></div>
+      </div>
+      <div class="title">Dashboard ejecutivo 6k→10k</div>
+      <div class="story">Como admin quiero un dashboard con métricas clave para monitorear crecimiento a 10k.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>KPIs: altas, churn, ARPU, morosidad, SLA, ingresos/gastos.</li><li>Filtros por zona/periodo/tecnología.</li><li>Exportable (CSV/PDF).</li><li>Actualización diaria y widgets en tiempo real.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Reportes</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Escalabilidad">
+      <div class="head">
+        <div class="id">US-ADMIN-ESC-79541</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Escalabilidad</span></div>
+      </div>
+      <div class="title">Estrategia de particionamiento y colas</div>
+      <div class="story">Como admin quiero que el sistema escale sin degradación al crecer de 6k a 10k.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Paginación y consultas indexadas.</li><li>Workers para tareas masivas (facturas, avisos).</li><li>Health-checks y auto-reintentos.</li><li>Plan de capacity y límites configurables.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Escalabilidad</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Auditoría/Logs">
+      <div class="head">
+        <div class="id">US-ADMIN-AUD-86174</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Auditoría/Logs</span></div>
+      </div>
+      <div class="title">Bitácora y trazabilidad 100%</div>
+      <div class="story">Como admin quiero ver quién hizo qué y cuándo para auditoría.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Log por usuario/acción/entidad/IP.</li><li>Exportable y retenido 13 meses.</li><li>Búsqueda por rango y entidad.</li><li>Alertas ante eventos críticos.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Auditoría/Logs</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="Clientes">
+      <div class="head">
+        <div class="id">US-SALES-CLI-69082</div>
+        <div><span class="tag">SALES</span><span class="tag">Clientes</span></div>
+      </div>
+      <div class="title">Alta de cliente (fibra/HFC)</div>
+      <div class="story">Como ventas quiero dar de alta un cliente con datos personales, plan y tecnología para activarlo rápidamente.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Validación de dirección y cobertura.</li><li>Selección de plan y equipo requerido.</li><li>Asignación a zona y router.</li><li>Confirmación y estado 'Pendiente instalación'.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Clientes</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="TV/Telefonía">
+      <div class="head">
+        <div class="id">US-SALES-TV/-65228</div>
+        <div><span class="tag">SALES</span><span class="tag">TV/Telefonía</span></div>
+      </div>
+      <div class="title">Agregar servicios adicionales (TV/telefonía)</div>
+      <div class="story">Como ventas quiero añadir TV/telefonía a un cliente para aumentar ARPU.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Selección de plan adicional y vigencia.</li><li>Opción de cobro en la misma factura.</li><li>Política de prorrateo.</li><li>Confirmación visible en ficha del cliente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: TV/Telefonía</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="Contratos">
+      <div class="head">
+        <div class="id">US-SALES-CON-33195</div>
+        <div><span class="tag">SALES</span><span class="tag">Contratos</span></div>
+      </div>
+      <div class="title">Generar contrato con firma digital</div>
+      <div class="story">Como ventas quiero generar contrato y firmarlo digitalmente para formalizar el servicio.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Plantilla por plan y zona.</li><li>Firma en móvil del cliente.</li><li>PDF en expediente y envío por correo.</li><li>Validez jurídica con sellos de tiempo.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Contratos</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="Notificaciones">
+      <div class="head">
+        <div class="id">US-SALES-NOT-47767</div>
+        <div><span class="tag">SALES</span><span class="tag">Notificaciones</span></div>
+      </div>
+      <div class="title">Recordatorios de pago automatizados</div>
+      <div class="story">Como ventas quiero enviar recordatorios (email/SMS/WhatsApp) para reducir morosidad.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Plantillas por etapa (previo, día 0, mora).</li><li>Opt-in por canal e idioma.</li><li>Registro de entregabilidad.</li><li>Botón de pago en el mensaje.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Notificaciones</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="Mapa/Geo">
+      <div class="head">
+        <div class="id">US-SALES-MAP-77113</div>
+        <div><span class="tag">SALES</span><span class="tag">Mapa/Geo</span></div>
+      </div>
+      <div class="title">Validar cobertura y asignación de técnico</div>
+      <div class="story">Como ventas quiero validar cobertura y agendar instalación con el técnico adecuado.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Mapa con capas de red/OLT/nodos HFC.</li><li>Estimación de distancia y materiales.</li><li>Agenda con disponibilidad del técnico.</li><li>Ticket de instalación creado automáticamente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Mapa/Geo</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Facturación">
+      <div class="head">
+        <div class="id">US-FIN-FAC-90130</div>
+        <div><span class="tag">FIN</span><span class="tag">Facturación</span></div>
+      </div>
+      <div class="title">Generación automática de facturas por zona</div>
+      <div class="story">Como finanzas quiero generar facturas por zona en la fecha configurada.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Job programado por zona.</li><li>Previsualización y control de errores.</li><li>Registro de éxito/falla por factura.</li><li>Resumen de emisión y reintentos.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Facturación</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Pagos">
+      <div class="head">
+        <div class="id">US-FIN-PAG-19894</div>
+        <div><span class="tag">FIN</span><span class="tag">Pagos</span></div>
+      </div>
+      <div class="title">Registrar pagos y reactivar servicio</div>
+      <div class="story">Como cobranza quiero registrar pagos y, si aplica, reactivar servicio suspendido.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Formulario: fecha, forma, referencia, monto.</li><li>Opción de reactivar al guardar.</li><li>Impresión de recibo.</li><li>Envío automático de confirmación.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Pagos</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Pagos">
+      <div class="head">
+        <div class="id">US-FIN-PAG-27470</div>
+        <div><span class="tag">FIN</span><span class="tag">Pagos</span></div>
+      </div>
+      <div class="title">Pagos adelantados y diferidos</div>
+      <div class="story">Como finanzas quiero manejar pagos adelantados/diferidos para reflejar saldos correctos.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Si monto&gt;total generar saldo a favor.</li><li>Aplicar a futuras facturas.</li><li>Plan de pagos con cuotas.</li><li>Registro contable consistente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Pagos</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Reportes">
+      <div class="head">
+        <div class="id">US-FIN-REP-10690</div>
+        <div><span class="tag">FIN</span><span class="tag">Reportes</span></div>
+      </div>
+      <div class="title">Reporte de ingresos y morosidad</div>
+      <div class="story">Como finanzas quiero reportes por periodo/zona/plan para controlar ingresos y moras.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Gráficas y tablas exportables.</li><li>Top morosos y aging (0-30/31-60/61-90+).</li><li>Tasa de cobranza por canal.</li><li>Conciliación con pasarela.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Reportes</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="CFDI">
+      <div class="head">
+        <div class="id">US-FIN-CFD-19133</div>
+        <div><span class="tag">FIN</span><span class="tag">CFDI</span></div>
+      </div>
+      <div class="title">Timbrado y cancelación masiva</div>
+      <div class="story">Como finanzas quiero timbrar/cancelar CFDIs masivamente respetando reglas fiscales.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Batch por rangos de folios/fechas.</li><li>Estatus por documento.</li><li>Motivos de cancelación 01-04.</li><li>Acuses y reintentos.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: CFDI</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Pagos">
+      <div class="head">
+        <div class="id">US-FIN-PAG-76943</div>
+        <div><span class="tag">FIN</span><span class="tag">Pagos</span></div>
+      </div>
+      <div class="title">Conciliación automática (webhooks)</div>
+      <div class="story">Como finanzas quiero conciliar automáticamente pagos confirmados por pasarela.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Recepción de webhook por pasarela.</li><li>Asociación por referencia.</li><li>Tolerancia a duplicados.</li><li>Bitácora y alertas ante discrepancias.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Pagos</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Instalaciones">
+      <div class="head">
+        <div class="id">US-TECH-INS-32739</div>
+        <div><span class="tag">TECH</span><span class="tag">Instalaciones</span></div>
+      </div>
+      <div class="title">Agendar e instalar (fibra/HFC)</div>
+      <div class="story">Como técnico quiero recibir órdenes con ruta y materiales para ejecutar instalaciones.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Agenda con mapa y tráfico.</li><li>Checklist de materiales (ONU/ONT/decodificador/router).</li><li>Firma y fotos de evidencia.</li><li>Cierre con pruebas de velocidad.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Instalaciones</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Instalaciones">
+      <div class="head">
+        <div class="id">US-TECH-INS-14643</div>
+        <div><span class="tag">TECH</span><span class="tag">Instalaciones</span></div>
+      </div>
+      <div class="title">Hoja de instalación digital</div>
+      <div class="story">Como técnico quiero una hoja digital con datos del cliente y configuración Wi‑Fi.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Campos: SSID/clave, IP/CPE, seriales.</li><li>Captura offline/online.</li><li>Entrega al cliente por email.</li><li>Disponible en portal.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Instalaciones</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Inventario">
+      <div class="head">
+        <div class="id">US-TECH-INV-04386</div>
+        <div><span class="tag">TECH</span><span class="tag">Inventario</span></div>
+      </div>
+      <div class="title">Asignación y devolución de equipos</div>
+      <div class="story">Como técnico quiero retirar equipos del almacén y dejarlos asignados al cliente.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Escaneo por código de barras/QR.</li><li>Estados (nuevo, usado, en reparación, perdido).</li><li>Trazabilidad por serie y técnico.</li><li>Alertas por faltantes.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Inventario</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Red/Router">
+      <div class="head">
+        <div class="id">US-TECH-RED-11958</div>
+        <div><span class="tag">TECH</span><span class="tag">Red/Router</span></div>
+      </div>
+      <div class="title">Provisionamiento automático de CPE</div>
+      <div class="story">Como técnico quiero provisionar CPE/ONT automáticamente según plan del cliente.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Plantillas por plan.</li><li>Aplicación vía API (OLT/RouterOS).</li><li>Rollback ante falla.</li><li>Registro de cambios en bitácora.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Red/Router</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Cortes">
+      <div class="head">
+        <div class="id">US-TECH-COR-89717</div>
+        <div><span class="tag">TECH</span><span class="tag">Cortes</span></div>
+      </div>
+      <div class="title">Corte/reconexión automática</div>
+      <div class="story">Como técnico quiero que los cortes/reconexiones se apliquen solos según pagos.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Listas de morosos/permitidos.</li><li>Sincronización periódica con routers/OLT.</li><li>Excepciones temporales por soporte.</li><li>Monitor de estado por cliente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Cortes</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="Tickets">
+      <div class="head">
+        <div class="id">US-SUP-TIC-63617</div>
+        <div><span class="tag">SUP</span><span class="tag">Tickets</span></div>
+      </div>
+      <div class="title">Gestión de tickets con SLA</div>
+      <div class="story">Como soporte quiero gestionar tickets con SLA y priorización para cumplir tiempos.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Prioridades P1-P4 con tiempos objetivo.</li><li>Asignación por skills/turno.</li><li>Plantillas de diagnóstico.</li><li>Escalamiento a NOC.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Tickets</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="Red/Router">
+      <div class="head">
+        <div class="id">US-SUP-RED-81324</div>
+        <div><span class="tag">SUP</span><span class="tag">Red/Router</span></div>
+      </div>
+      <div class="title">Diagnóstico de tráfico y latencia</div>
+      <div class="story">Como soporte quiero ver consumo, pérdida y latencia del cliente para diagnosticar.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Gráficas 1h/24h/7d/30d.</li><li>Pruebas remotas (ping, traceroute, torch).</li><li>Umbrales y alertas.</li><li>Anotaciones en el expediente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Red/Router</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="Notificaciones">
+      <div class="head">
+        <div class="id">US-SUP-NOT-87582</div>
+        <div><span class="tag">SUP</span><span class="tag">Notificaciones</span></div>
+      </div>
+      <div class="title">Alertas proactivas de degradación</div>
+      <div class="story">Como soporte quiero recibir alertas cuando la red de un cliente se degrade.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Reglas por pérdida de paquetes/alto uso.</li><li>Correlación con zona/OLT/nodo HFC.</li><li>Creación automática de ticket.</li><li>Mensaje al cliente afectado.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Notificaciones</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="Cortes">
+      <div class="head">
+        <div class="id">US-SUP-COR-21011</div>
+        <div><span class="tag">SUP</span><span class="tag">Cortes</span></div>
+      </div>
+      <div class="title">Suspensión/Exención temporal por soporte</div>
+      <div class="story">Como soporte quiero suspender o eximir temporalmente a un cliente durante diagnóstico.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Pausa de corte por tiempo acotado.</li><li>Comentarios obligatorios y auditoría.</li><li>Notificación a finanzas/ventas.</li><li>Reversión automática al vencer.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Cortes</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="SLA/Calidad">
+      <div class="head">
+        <div class="id">US-SUP-SLA-79336</div>
+        <div><span class="tag">SUP</span><span class="tag">SLA/Calidad</span></div>
+      </div>
+      <div class="title">Encuesta de satisfacción post-ticket</div>
+      <div class="story">Como soporte quiero medir CSAT/NPS tras el cierre del ticket.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Encuesta por canal elegido.</li><li>Métrica en dashboard por agente/zona.</li><li>Comentarios abiertos.</li><li>Alertas por CSAT bajo.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: SLA/Calidad</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="INV" data-module="Inventario">
+      <div class="head">
+        <div class="id">US-INV-INV-32111</div>
+        <div><span class="tag">INV</span><span class="tag">Inventario</span></div>
+      </div>
+      <div class="title">Catálogo y stock de equipos</div>
+      <div class="story">Como almacén quiero administrar catálogo y stock (ONT, routers, decodificadores, cables).</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>CRUD de productos y SKUs.</li><li>Ubicaciones/sucursales.</li><li>Estados y mínimos de reorden.</li><li>Importación CSV.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Inventario</span>
+        <span class="pill">Rol: Almacén / Logística</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="INV" data-module="Inventario">
+      <div class="head">
+        <div class="id">US-INV-INV-41447</div>
+        <div><span class="tag">INV</span><span class="tag">Inventario</span></div>
+      </div>
+      <div class="title">Asignación de artículos a cliente/staff</div>
+      <div class="story">Como almacén quiero asignar artículos con serial al cliente o staff con trazabilidad.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Escaneo QR/código de barras.</li><li>Historial de movimientos.</li><li>Firma de entrega/recepción.</li><li>Alertas por equipo vencido en préstamo.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Inventario</span>
+        <span class="pill">Rol: Almacén / Logística</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="INV" data-module="Reportes">
+      <div class="head">
+        <div class="id">US-INV-REP-17022</div>
+        <div><span class="tag">INV</span><span class="tag">Reportes</span></div>
+      </div>
+      <div class="title">Reporte de depreciación y pérdidas</div>
+      <div class="story">Como almacén quiero reportar depreciación/pérdidas para control financiero.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Método de depreciación configurable.</li><li>Conciliación con finanzas.</li><li>Alertas por inventario inactivo.</li><li>Exportable.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Reportes</span>
+        <span class="pill">Rol: Almacén / Logística</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="CUST" data-module="Portal Cliente">
+      <div class="head">
+        <div class="id">US-CUST-POR-96213</div>
+        <div><span class="tag">CUST</span><span class="tag">Portal Cliente</span></div>
+      </div>
+      <div class="title">Portal/app para saldo, facturas y consumo</div>
+      <div class="story">Como cliente quiero ver mi saldo, facturas, recibos y consumo para estar al día.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Login seguro (2FA opcional).</li><li>Descarga de PDF/XML.</li><li>Histórico de consumo.</li><li>Botón de pago.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Portal Cliente</span>
+        <span class="pill">Rol: Cliente final / App</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="CUST" data-module="Tickets">
+      <div class="head">
+        <div class="id">US-CUST-TIC-80706</div>
+        <div><span class="tag">CUST</span><span class="tag">Tickets</span></div>
+      </div>
+      <div class="title">Reportar fallas desde portal/app</div>
+      <div class="story">Como cliente quiero abrir tickets con fotos y seguimiento.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Formulario simple + adjuntos.</li><li>Notificaciones de estado.</li><li>Historial por ticket.</li><li>Calificar atención.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Tickets</span>
+        <span class="pill">Rol: Cliente final / App</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="CUST" data-module="Notificaciones">
+      <div class="head">
+        <div class="id">US-CUST-NOT-43723</div>
+        <div><span class="tag">CUST</span><span class="tag">Notificaciones</span></div>
+      </div>
+      <div class="title">Avisos de corte/pago en mis canales</div>
+      <div class="story">Como cliente quiero elegir por qué canal recibir avisos (email/SMS/WhatsApp/app).</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Preferencias por canal.</li><li>Pruebas de envío.</li><li>Log de entregabilidad.</li><li>Opt‑out respetado.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Notificaciones</span>
+        <span class="pill">Rol: Cliente final / App</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="CUST" data-module="App Móvil">
+      <div class="head">
+        <div class="id">US-CUST-APP-85707</div>
+        <div><span class="tag">CUST</span><span class="tag">App Móvil</span></div>
+      </div>
+      <div class="title">Cambiar contraseña y datos de contacto</div>
+      <div class="story">Como cliente quiero actualizar mis datos para mantenerme comunicado.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Edición de perfil con validaciones.</li><li>Confirmación por correo/SMS.</li><li>Historial de cambios.</li><li>Sincronizado con backend.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: App Móvil</span>
+        <span class="pill">Rol: Cliente final / App</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="OPS" data-module="Automatizaciones">
+      <div class="head">
+        <div class="id">US-OPS-AUT-38187</div>
+        <div><span class="tag">OPS</span><span class="tag">Automatizaciones</span></div>
+      </div>
+      <div class="title">Tareas programadas por zona</div>
+      <div class="story">Como operaciones quiero programar facturación, avisos y cortes por zona.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>CRON centralizado con monitoreo.</li><li>Reintentos exponenciales.</li><li>Pausar/reanudar por contingencia.</li><li>Log por ejecución.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Automatizaciones</span>
+        <span class="pill">Rol: Operaciones / Plataforma</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="OPS" data-module="Importación/Exportación">
+      <div class="head">
+        <div class="id">US-OPS-IMP-42437</div>
+        <div><span class="tag">OPS</span><span class="tag">Importación/Exportación</span></div>
+      </div>
+      <div class="title">Importar/exportar clientes y facturas</div>
+      <div class="story">Como operaciones quiero importar/exportar datos masivamente para migraciones.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Plantillas CSV/Excel.</li><li>Validaciones previas con resumen de errores.</li><li>Operación en segundo plano con progreso.</li><li>Notificación al finalizar.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Importación/Exportación</span>
+        <span class="pill">Rol: Operaciones / Plataforma</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="OPS" data-module="Backoffice">
+      <div class="head">
+        <div class="id">US-OPS-BAC-05198</div>
+        <div><span class="tag">OPS</span><span class="tag">Backoffice</span></div>
+      </div>
+      <div class="title">Cola de trabajos y monitor</div>
+      <div class="story">Como operaciones quiero monitorear trabajos (batch) para detectar cuellos de botella.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Estados: pendiente/ejecución/éxito/falla.</li><li>Métricas de duración y throughput.</li><li>Reintentos y circuit breaker.</li><li>Filtros por tipo y fecha.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Backoffice</span>
+        <span class="pill">Rol: Operaciones / Plataforma</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SEC" data-module="Seguridad">
+      <div class="head">
+        <div class="id">US-SEC-SEG-87584</div>
+        <div><span class="tag">SEC</span><span class="tag">Seguridad</span></div>
+      </div>
+      <div class="title">Control de acceso y 2FA</div>
+      <div class="story">Como seguridad quiero 2FA y políticas de contraseñas para proteger cuentas.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>2FA por app o SMS.</li><li>Políticas de vencimiento/longitud.</li><li>Bloqueo por intentos fallidos.</li><li>Recuperación segura.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Seguridad</span>
+        <span class="pill">Rol: Seguridad / Cumplimiento</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SEC" data-module="Seguridad">
+      <div class="head">
+        <div class="id">US-SEC-SEG-69991</div>
+        <div><span class="tag">SEC</span><span class="tag">Seguridad</span></div>
+      </div>
+      <div class="title">Cifrado y PII</div>
+      <div class="story">Como seguridad quiero cifrar PII en tránsito y reposo para cumplir regulaciones.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>TLS 1.2+ end-to-end.</li><li>Cifrado de campos sensibles.</li><li>Rotación de llaves.</li><li>Mascarado en UI y logs.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Seguridad</span>
+        <span class="pill">Rol: Seguridad / Cumplimiento</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SEC" data-module="Auditoría/Logs">
+      <div class="head">
+        <div class="id">US-SEC-AUD-66393</div>
+        <div><span class="tag">SEC</span><span class="tag">Auditoría/Logs</span></div>
+      </div>
+      <div class="title">Detección de anomalías</div>
+      <div class="story">Como seguridad quiero alertas por actividades anómalas de usuarios internos.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Reglas por hora/IP/volumen.</li><li>Alertas al responsable.</li><li>Revisión y cierre de incidente.</li><li>Evidencias retenidas.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Auditoría/Logs</span>
+        <span class="pill">Rol: Seguridad / Cumplimiento</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="DATA" data-module="KPIs/BI">
+      <div class="head">
+        <div class="id">US-DATA-KPI-73025</div>
+        <div><span class="tag">DATA</span><span class="tag">KPIs/BI</span></div>
+      </div>
+      <div class="title">Cuadro de mando integral</div>
+      <div class="story">Como BI quiero un cuadro de mando con KPIs de ingresos, churn, SLA y ARPU.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Definiciones uniformes de métricas.</li><li>Dashboards por rol.</li><li>Drill‑down por zona/plan.</li><li>APIs para exportar a Data Lake.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: KPIs/BI</span>
+        <span class="pill">Rol: Analítica / BI</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="DATA" data-module="Reportes">
+      <div class="head">
+        <div class="id">US-DATA-REP-37242</div>
+        <div><span class="tag">DATA</span><span class="tag">Reportes</span></div>
+      </div>
+      <div class="title">Cohortes y retención</div>
+      <div class="story">Como BI quiero análisis de cohortes para entender retención y churn.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Cohortes por mes de alta.</li><li>Curvas de supervivencia.</li><li>Segmentación por plan/zona/canal de venta.</li><li>Exportable.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Reportes</span>
+        <span class="pill">Rol: Analítica / BI</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="DATA" data-module="SLA/Calidad">
+      <div class="head">
+        <div class="id">US-DATA-SLA-00981</div>
+        <div><span class="tag">DATA</span><span class="tag">SLA/Calidad</span></div>
+      </div>
+      <div class="title">SLA de tickets y MTTR/MTBF</div>
+      <div class="story">Como BI quiero medir SLA, MTTR y MTBF de atención y red.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Modelo de datos para tiempos.</li><li>Alertas por incumplimiento.</li><li>Ranking por agente/zona.</li><li>Panel histórico.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: SLA/Calidad</span>
+        <span class="pill">Rol: Analítica / BI</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Seguridad">
+      <div class="head">
+        <div class="id">US-ADMIN-SEG-57321</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Seguridad</span></div>
+      </div>
+      <div class="title">Política de retención de datos</div>
+      <div class="story">Como admin quiero configurar retención por tipo de dato para cumplir normas.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Retención por entidad (tickets, CFDI, logs).</li><li>Purgas programadas.</li><li>Resguardo legal antes de purgar.</li><li>Reporte de purgas.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Seguridad</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="ADMIN" data-module="Integraciones">
+      <div class="head">
+        <div class="id">US-ADMIN-INT-64370</div>
+        <div><span class="tag">ADMIN</span><span class="tag">Integraciones</span></div>
+      </div>
+      <div class="title">API pública y Webhooks</div>
+      <div class="story">Como admin quiero exponer API/webhooks para integrarme con CRM/ERP/BI.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Tokens por rol y scopes.</li><li>Límites de rate y firma HMAC.</li><li>Catálogo de eventos.</li><li>Sandbox y documentación.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Integraciones</span>
+        <span class="pill">Rol: Administrador / Dueño del ISP</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="Clientes">
+      <div class="head">
+        <div class="id">US-SALES-CLI-44895</div>
+        <div><span class="tag">SALES</span><span class="tag">Clientes</span></div>
+      </div>
+      <div class="title">Migración de plan sin corte</div>
+      <div class="story">Como ventas quiero migrar de plan sin afectar el servicio.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Elegir nueva velocidad/canales.</li><li>Fecha efectiva inmediata o próxima facturación.</li><li>Prorrateo automático.</li><li>Confirmación al cliente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Clientes</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SALES" data-module="Clientes">
+      <div class="head">
+        <div class="id">US-SALES-CLI-82705</div>
+        <div><span class="tag">SALES</span><span class="tag">Clientes</span></div>
+      </div>
+      <div class="title">Promesas de pago</div>
+      <div class="story">Como ventas quiero registrar promesas de pago para gestionar cartera.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Fecha y monto comprometido.</li><li>Recordatorio automático.</li><li>Vista para seguimiento.</li><li>Impacto en corte temporal.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Clientes</span>
+        <span class="pill">Rol: Ventas / Atención</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Pagos">
+      <div class="head">
+        <div class="id">US-FIN-PAG-15640</div>
+        <div><span class="tag">FIN</span><span class="tag">Pagos</span></div>
+      </div>
+      <div class="title">Caja y arqueo</div>
+      <div class="story">Como finanzas quiero manejar caja diaria y arqueos por cobrador/sucursal.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Apertura/cierre de caja.</li><li>Corte por turno.</li><li>Diferencias y ajustes.</li><li>Reporte por usuario.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Pagos</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="FIN" data-module="Pagos">
+      <div class="head">
+        <div class="id">US-FIN-PAG-28714</div>
+        <div><span class="tag">FIN</span><span class="tag">Pagos</span></div>
+      </div>
+      <div class="title">Notas de crédito/débito</div>
+      <div class="story">Como finanzas quiero emitir notas de crédito/débito para correcciones.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Referencia a CFDI origen.</li><li>Afectación de saldo.</li><li>Motivo documentado.</li><li>Exportable a contabilidad.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Pagos</span>
+        <span class="pill">Rol: Finanzas / Cobranzas</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Red/Router">
+      <div class="head">
+        <div class="id">US-TECH-RED-91473</div>
+        <div><span class="tag">TECH</span><span class="tag">Red/Router</span></div>
+      </div>
+      <div class="title">Gestión de OLT/GPON</div>
+      <div class="story">Como técnico quiero administrar OLT, perfiles y ONUs/ONTs.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Altas/bajas de ONT.</li><li>Perfiles por velocidad/cola.</li><li>Estado y potencia óptica.</li><li>Sincronización con cliente.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Red/Router</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="TECH" data-module="Red/Router">
+      <div class="head">
+        <div class="id">US-TECH-RED-84799</div>
+        <div><span class="tag">TECH</span><span class="tag">Red/Router</span></div>
+      </div>
+      <div class="title">Gestión de nodos HFC</div>
+      <div class="story">Como técnico quiero administrar nodos y amplificadores HFC.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Mapa de nodos y taps.</li><li>Capacidad y ruido por segmento.</li><li>Alarmas por nodo.</li><li>Histórico de incidencias.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Red/Router</span>
+        <span class="pill">Rol: Técnicos de instalación / Campo</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="Tickets">
+      <div class="head">
+        <div class="id">US-SUP-TIC-09419</div>
+        <div><span class="tag">SUP</span><span class="tag">Tickets</span></div>
+      </div>
+      <div class="title">Macros y base de conocimiento</div>
+      <div class="story">Como soporte quiero macros/KMS para acelerar resolución.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Plantillas por falla común.</li><li>Inserción rápida en ticket.</li><li>Feedback/ratings de artículos.</li><li>Búsqueda full‑text.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Tickets</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SUP" data-module="Red/Router">
+      <div class="head">
+        <div class="id">US-SUP-RED-41145</div>
+        <div><span class="tag">SUP</span><span class="tag">Red/Router</span></div>
+      </div>
+      <div class="title">Préstamo de equipo temporal</div>
+      <div class="story">Como soporte quiero asignar equipo temporal durante diagnóstico.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Flujo de préstamo desde ticket.</li><li>Entrega/recepción con firma.</li><li>Cargo si no regresa.</li><li>Cambio de estado en inventario.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Red/Router</span>
+        <span class="pill">Rol: Soporte técnico / NOC</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="INV" data-module="Inventario">
+      <div class="head">
+        <div class="id">US-INV-INV-69669</div>
+        <div><span class="tag">INV</span><span class="tag">Inventario</span></div>
+      </div>
+      <div class="title">RMA con proveedores</div>
+      <div class="story">Como almacén quiero gestionar RMA con proveedores.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Solicitud con evidencias.</li><li>Estados (enviado, recibido, reemplazo).</li><li>Tiempos de respuesta.</li><li>Vinculación a serie.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Inventario</span>
+        <span class="pill">Rol: Almacén / Logística</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="INV" data-module="Inventario">
+      <div class="head">
+        <div class="id">US-INV-INV-89270</div>
+        <div><span class="tag">INV</span><span class="tag">Inventario</span></div>
+      </div>
+      <div class="title">Kits de instalación</div>
+      <div class="story">Como almacén quiero armar kits estándar por tecnología.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Plantillas de kit.</li><li>Descuento de stock al armar.</li><li>Asignación por ticket.</li><li>Reposición automática.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Inventario</span>
+        <span class="pill">Rol: Almacén / Logística</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="CUST" data-module="Portal Cliente">
+      <div class="head">
+        <div class="id">US-CUST-POR-76553</div>
+        <div><span class="tag">CUST</span><span class="tag">Portal Cliente</span></div>
+      </div>
+      <div class="title">Cambio de plan desde portal (con validación)</div>
+      <div class="story">Como cliente quiero solicitar cambio de plan desde el portal.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Validación de cobertura/contrato.</li><li>Flujo de aprobación por ventas.</li><li>Nueva facturación y prorrateo.</li><li>Notificación del cambio.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Portal Cliente</span>
+        <span class="pill">Rol: Cliente final / App</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="CUST" data-module="Pagos">
+      <div class="head">
+        <div class="id">US-CUST-PAG-87337</div>
+        <div><span class="tag">CUST</span><span class="tag">Pagos</span></div>
+      </div>
+      <div class="title">Descargar estados de cuenta</div>
+      <div class="story">Como cliente quiero descargar estados de cuenta por periodo.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>PDF con movimientos y saldos.</li><li>Filtro por rango de fechas.</li><li>Leyendas fiscales.</li><li>Disponible en app.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Pagos</span>
+        <span class="pill">Rol: Cliente final / App</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="OPS" data-module="Automatizaciones">
+      <div class="head">
+        <div class="id">US-OPS-AUT-58156</div>
+        <div><span class="tag">OPS</span><span class="tag">Automatizaciones</span></div>
+      </div>
+      <div class="title">Mantenimiento programado</div>
+      <div class="story">Como operaciones quiero comunicar mantenimientos con ventana y alcance.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Crear evento de mantenimiento.</li><li>Segmentación por zona/tecnología.</li><li>Aviso previo y recordatorio.</li><li>Post‑mortem y impacto.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Automatizaciones</span>
+        <span class="pill">Rol: Operaciones / Plataforma</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="SEC" data-module="Seguridad">
+      <div class="head">
+        <div class="id">US-SEC-SEG-10020</div>
+        <div><span class="tag">SEC</span><span class="tag">Seguridad</span></div>
+      </div>
+      <div class="title">Bastionado de sesión y dispositivos</div>
+      <div class="story">Como seguridad quiero controlar dispositivos y sesiones activas.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Lista de sesiones y logout remoto.</li><li>Límites de dispositivos.</li><li>Alertas por inicio sospechoso.</li><li>Política BYOD.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: Seguridad</span>
+        <span class="pill">Rol: Seguridad / Cumplimiento</span>
+      </div>
+    </article>
+    
+    <article class="card" data-role="DATA" data-module="KPIs/BI">
+      <div class="head">
+        <div class="id">US-DATA-KPI-81136</div>
+        <div><span class="tag">DATA</span><span class="tag">KPIs/BI</span></div>
+      </div>
+      <div class="title">Forecast de ingresos y demanda</div>
+      <div class="story">Como BI quiero pronosticar ingresos y demanda por zona.</div>
+      <div class="crit">
+        <h4>Criterios de Aceptación</h4>
+        <ul><li>Modelo ARIMA/ML opcional.</li><li>Escenarios por plan y churn.</li><li>Error histórico MAPE.</li><li>Exportable a finanzas.</li></ul>
+      </div>
+      <div class="meta">
+        <span class="pill ok">Prioridad: Alta</span>
+        <span class="pill">Esfuerzo: M</span>
+        <span class="pill">Módulo: KPIs/BI</span>
+        <span class="pill">Rol: Analítica / BI</span>
+      </div>
+    </article>
+    
+  </section>
+</main>
+<footer>
+  Proyecto: Plataforma ISP para telecable y fibra • Enfoque 6,000→10,000 usuarios • Archivo HTML estático (publícalo en tu wiki).
+</footer>
+<script>
+const q = document.getElementById('q');
+const roleSel = document.getElementById('role');
+const modSel = document.getElementById('module');
+const cards = Array.from(document.querySelectorAll('.card'));
+function applyFilter(){
+  const tq = q.value.toLowerCase().trim();
+  const r = roleSel.value, m = modSel.value;
+  let visible=0;
+  cards.forEach(c=>{
+    const role = c.dataset.role;
+    const mod = c.dataset.module;
+    const text = c.innerText.toLowerCase();
+    const okRole = (r==='ALL' || role===r);
+    const okMod = (m==='ALL' || mod===m);
+    const okQ = (!tq || text.includes(tq));
+    const show = okRole && okMod && okQ;
+    c.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+  document.getElementById('count').textContent = visible;
+}
+[q, roleSel, modSel].forEach(el=>el.addEventListener('input', applyFilter));
+applyFilter();
+</script>
+
+
+</body></html>

@@ -1,0 +1,23 @@
+{
+  "realm": "telecable",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      {"name": "admin"},
+      {"name": "tecnico"},
+      {"name": "soporte"},
+      {"name": "cobranzas"},
+      {"name": "cliente"}
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@example.com",
+      "credentials": [{"type": "password", "value": "admin", "temporary": false}],
+      "realmRoles": ["admin"]
+    }
+  ]
+}

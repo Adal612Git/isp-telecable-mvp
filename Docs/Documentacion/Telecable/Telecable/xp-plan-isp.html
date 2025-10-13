@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MVP XP — ISP 6k→10k (EPICs + Checklist + Pruebas/Simulación)</title>
+<style>
+  :root{
+    --bg:#0a1a2f; --panel:#132a46; --ink:#f5f8fc; --muted:#9db0cf;
+    --accent:#3fa9f5; --ok:#19c37d; --warn:#ffc53d; --danger:#ff4d4f; --line:#1b3b60;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,var(--bg),#0f213a 55%,#0d1e35);
+       color:var(--ink);font:14.5px/1.55 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:24px}
+  h1{font-size:26px;margin:0 0 8px}
+  h2{font-size:20px;margin:22px 0 10px}
+  h3{font-size:16px;margin:18px 0 8px;color:var(--accent)}
+  p,li{max-width:1000px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .grid{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgb(0 0 0 /.25)}
+  .controls .row{display:flex;gap:8px;flex-wrap:wrap}
+  input[type=search],select,button,.btn{background:#0e2340;border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:9px 10px;outline:none}
+  input[type=search]{flex:1;min-width:220px}
+  .btn{cursor:pointer}
+  .btn.ghost{background:transparent}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);
+        border-radius:999px;padding:4px 8px;font-size:12px;color:var(--muted)}
+  .ok{color:#9dffd8;border-color:#0c7a5f}
+  .warn{color:#ffe29c;border-color:#7a5f0c}
+  .danger{color:#ffd0d1;border-color:#7a0c19}
+  .progress{height:10px;border-radius:999px;background:#0c1d33;border:1px solid var(--line);overflow:hidden}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,#1fb6ff,#22d3ee,#19c37d)}
+  .epic{margin-bottom:14px}
+  details.epic{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  details.epic > summary{background:#0d223f;padding:10px 12px;cursor:pointer;user-select:none;display:flex;gap:10px;align-items:center}
+  .stat{display:flex;gap:8px;align-items:center;margin-left:auto;font-size:12px;color:var(--muted)}
+  .tasks{padding:12px}
+  .task{display:flex;gap:10px;align-items:flex-start;padding:8px;border-bottom:1px dashed #153058}
+  .task:last-child{border-bottom:0}
+  .task small{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 6px;margin-right:6px}
+  .foot{color:var(--muted);font-size:12px;margin-top:8px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#09182b;border:1px solid #153058;border-radius:6px;padding:2px 6px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  code{background:#09182b;border:1px solid #153058;padding:1px 4px;border-radius:6px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header class="grid">
+  <div class="card">
+    <h1>MVP XP — ISP 6k→10k</h1>
+    <p class="foot">
+      Plan por <b>EPICs</b> (historias→tasks), checklist y guías de <b>ensamble</b>, <b>pruebas 100–200</b> y <b>simulación</b>.
+      Alineado al roadmap por olas (Fundaciones→Core→Campo/Red→Soporte→Inventario/BI) y a los contextos DDD. 
+    </p>
+    <div class="progress" title="Progreso total"><i id="bar" style="width:0%"></i></div>
+    <div class="foot"><span id="totals">0/0</span> completadas • <span id="pct">0%</span></div>
+  </div>
+  <div class="card controls">
+    <h3>Filtros y acciones</h3>
+    <div class="row">
+      <input id="q" type="search" placeholder="Buscar texto (historia, task, tags)..." />
+      <select id="epicFilter">
+        <option value="ALL">Todas las EPICs</option>
+      </select>
+      <select id="moduleFilter">
+        <option value="ALL">Todos los módulos</option>
+        <option>Clientes & CRM</option><option>Catálogo & Planes</option><option>Facturación & CFDI</option>
+        <option>Pagos</option><option>Cortes</option><option>Instalaciones</option><option>Red/GPON/HFC</option>
+        <option>Tickets & SLA</option><option>Inventario</option><option>Notificaciones</option>
+        <option>KPIs/BI</option><option>Integraciones</option><option>Seguridad</option><option>Backoffice</option>
+        <option>Observabilidad</option>
+      </select>
+    </div>
+    <div class="row">
+      <label class="pill"><input id="onlyPending" type="checkbox" /> Solo pendientes</label>
+      <button class="btn" id="expand">Abrir todo</button>
+      <button class="btn ghost" id="collapse">Cerrar todo</button>
+      <button class="btn" id="save">Guardar</button>
+      <button class="btn ghost" id="clear">Borrar</button>
+      <button class="btn" id="export">Exportar JSON</button>
+      <button class="btn ghost" onclick="window.print()">Imprimir</button>
+    </div>
+  </div>
+</header>
+
+<main class="grid" style="margin-top:18px">
+  <aside class="card">
+    <h2>EPICs (MVP)</h2>
+    <ol id="epicList" style="padding-left:18px">
+      <!-- se rellena con JS -->
+    </ol>
+    <p class="foot">
+      Criterios guía del MVP: autenticación, flujos básicos CRM→CFDI (sandbox)→Pagos (sandbox)→Corte/Reconexion (simulada),
+      notificaciones y observabilidad mínima; API pública y auditoría básicas.
+    </p>
+  </aside>
+
+  <section id="epics" class="card">
+    <!-- ===== EPIC 0 — FUNDACIONES ===== -->
+    <details class="epic" data-epic="E0 Fundaciones" open>
+      <summary>
+        <b>EPIC 0 — Fundaciones (Infra, CI/CD, Auth, Observabilidad)</b>
+        <span class="stat"><span class="pill ok" id="E0-count">0/0</span></span>
+      </summary>
+      <div class="tasks">
+        <div class="task" data-module="Observabilidad">
+          <label><input type="checkbox" class="chk" data-epic="E0 Fundaciones">
+            <b>Repo mono + pipelines CI</b> — GitHub Actions (build/test/lint), imágenes Docker mínimas y despliegue
+            local con Compose. <span class="tag">CI/CD</span> <small>Artefactos versionados</small>
+          </label>
+        </div>
+        <div class="task" data-module="Seguridad">
+          <label><input type="checkbox" class="chk" data-epic="E0 Fundaciones">
+            <b>Keycloak (OIDC) + RBAC básico</b> — realms, roles (admin, fin, tech, sup, inv, data), clientes públicos/privados.
+            <span class="tag">Auth</span>
+          </label>
+        </div>
+        <div class="task" data-module="Observabilidad">
+          <label><input type="checkbox" class="chk" data-epic="E0 Fundaciones">
+            <b>Observabilidad mínima</b> — OpenTelemetry SDK + Prometheus + Grafana + logs app; healthchecks /ready /live.
+            <span class="tag">APM</span>
+          </label>
+        </div>
+        <div class="task" data-module="Backoffice">
+          <label><input type="checkbox" class="chk" data-epic="E0 Fundaciones">
+            <b>Backoffice shell</b> (Next.js) — login OIDC, layout, permisos por rol. <span class="tag">UI</span>
+          </label>
+        </div>
+        <div class="task" data-module="Integraciones">
+          <label><input type="checkbox" class="chk" data-epic="E0 Fundaciones">
+            <b>API Gateway</b> — Kong/Express gateway con rate-limit y trazas. <span class="tag">Gateway</span>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== EPIC 1 — CORE COMERCIAL ===== -->
+    <details class="epic" data-epic="E1 Core Comercial" open>
+      <summary>
+        <b>EPIC 1 — Core Comercial (CRM, Catálogo, CFDI sandbox, Pagos sandbox)</b>
+        <span class="stat"><span class="pill ok" id="E1-count">0/0</span></span>
+      </summary>
+      <div class="tasks">
+        <div class="task" data-module="Clientes & CRM">
+          <label><input type="checkbox" class="chk" data-epic="E1 Core Comercial">
+            <b>Historias CRM mínimas</b> — alta cliente, contrato, zona de servicio; validación RFC. <span class="tag">CRM</span>
+          </label>
+        </div>
+        <div class="task" data-module="Catálogo & Planes">
+          <label><input type="checkbox" class="chk" data-epic="E1 Core Comercial">
+            <b>Catálogo de planes</b> — velocidades/combos y compatibilidad por tecnología. <span class="tag">Catálogo</span>
+          </label>
+        </div>
+        <div class="task" data-module="Facturación & CFDI">
+          <label><input type="checkbox" class="chk" data-epic="E1 Core Comercial">
+            <b>CFDI sandbox</b> — emisión mensual por zona; timbrado simulado (PAC fake), XML/PDF en MinIO. <span class="tag">CFDI</span>
+          </label>
+        </div>
+        <div class="task" data-module="Pagos">
+          <label><input type="checkbox" class="chk" data-epic="E1 Core Comercial">
+            <b>Pagos (test mode)</b> — Stripe/MercadoPago sandbox; webhooks idempotentes; conciliación simple. <span class="tag">Pagos</span>
+          </label>
+        </div>
+        <div class="task" data-module="Notificaciones">
+          <label><input type="checkbox" class="chk" data-epic="E1 Core Comercial">
+            <b>Notificaciones</b> — email con MailHog; plantillas para “factura emitida” y “pago confirmado”. <span class="tag">Mail</span>
+          </label>
+        </div>
+        <div class="task" data-module="Backoffice">
+          <label><input type="checkbox" class="chk" data-epic="E1 Core Comercial">
+            <b>Backoffice de finanzas</b> — lista de facturas, pagos, reintentos de webhooks y export CSV. <span class="tag">UI</span>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== EPIC 2 — CAMPO & RED ===== -->
+    <details class="epic" data-epic="E2 Campo & Red">
+      <summary>
+        <b>EPIC 2 — Operación de campo & Red (Work Orders, GPON/HFC simulados, Cortes)</b>
+        <span class="stat"><span class="pill ok" id="E2-count">0/0</span></span>
+      </summary>
+      <div class="tasks">
+        <div class="task" data-module="Instalaciones">
+          <label><input type="checkbox" class="chk" data-epic="E2 Campo & Red">
+            <b>Orden de instalación</b> — agenda, checklist, fotos a MinIO. <span class="tag">WO</span>
+          </label>
+        </div>
+        <div class="task" data-module="Red/GPON/HFC">
+          <label><input type="checkbox" class="chk" data-epic="E2 Campo & Red">
+            <b>DriverSim GPON/HFC</b> — FastAPI simulando OLT (altas/bajas ONT, potencia, perfiles) y nodos HFC (capacidad/ruido). <span class="tag">Simulación</span>
+          </label>
+        </div>
+        <div class="task" data-module="Cortes">
+          <label><input type="checkbox" class="chk" data-epic="E2 Campo & Red">
+            <b>Corte/reconexión (saga)</b> — decide por mora, emite eventos y llama DriverSim para (des)provisión. <span class="tag">Saga</span>
+          </label>
+        </div>
+        <div class="task" data-module="Backoffice">
+          <label><input type="checkbox" class="chk" data-epic="E2 Campo & Red">
+            <b>Panel de cortes</b> — selección por zona, canary batch, límites de tasa; rollback seguro. <span class="tag">Operación</span>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== EPIC 3 — SOPORTE & CALIDAD ===== -->
+    <details class="epic" data-epic="E3 Soporte & Calidad">
+      <summary>
+        <b>EPIC 3 — Soporte & Calidad (Tickets, SLA básico, Diagnóstico)</b>
+        <span class="stat"><span class="pill ok" id="E3-count">0/0</span></span>
+      </summary>
+      <div class="tasks">
+        <div class="task" data-module="Tickets & SLA">
+          <label><input type="checkbox" class="chk" data-epic="E3 Soporte & Calidad">
+            <b>Tickets</b> — apertura/cierre, prioridad, SLA, comentarios; búsqueda simple. <span class="tag">Soporte</span>
+          </label>
+        </div>
+        <div class="task" data-module="Observabilidad">
+          <label><input type="checkbox" class="chk" data-epic="E3 Soporte & Calidad">
+            <b>Diag. básico</b> — ping/traceroute al CPE via DriverSim; log de degradaciones. <span class="tag">Diag</span>
+          </label>
+        </div>
+        <div class="task" data-module="Notificaciones">
+          <label><input type="checkbox" class="chk" data-epic="E3 Soporte & Calidad">
+            <b>Encuesta CSAT</b> — envío al cerrar ticket. <span class="tag">CSAT</span>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== EPIC 4 — INVENTARIO & BI ===== -->
+    <details class="epic" data-epic="E4 Inventario & BI">
+      <summary>
+        <b>EPIC 4 — Inventario & BI (seriales mínimos + Dashboard ejecutivo)</b>
+        <span class="stat"><span class="pill ok" id="E4-count">0/0</span></span>
+      </summary>
+      <div class="tasks">
+        <div class="task" data-module="Inventario">
+          <label><input type="checkbox" class="chk" data-epic="E4 Inventario & BI">
+            <b>Inventario mínimo</b> — alta de CPE/ONT con serial y estado; movimientos simples. <span class="tag">Stock</span>
+          </label>
+        </div>
+        <div class="task" data-module="KPIs/BI">
+          <label><input type="checkbox" class="chk" data-epic="E4 Inventario & BI">
+            <b>Dashboard ejecutivo</b> — altas, churn, ARPU, morosidad, SLA (filtros zona/periodo; export CSV). <span class="tag">BI</span>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== EPIC X — TRANSVERSALES ===== -->
+    <details class="epic" data-epic="EX Transversales">
+      <summary>
+        <b>EPIC X — Transversales (API Pública, Auditoría & Retención, Seguridad)</b>
+        <span class="stat"><span class="pill ok" id="EX-count">0/0</span></span>
+      </summary>
+      <div class="tasks">
+        <div class="task" data-module="Integraciones">
+          <label><input type="checkbox" class="chk" data-epic="EX Transversales">
+            <b>API pública + Webhooks</b> — scopes por rol, firma HMAC, catálogo de eventos y sandbox. <span class="tag">API</span>
+          </label>
+        </div>
+        <div class="task" data-module="Seguridad">
+          <label><input type="checkbox" class="chk" data-epic="EX Transversales">
+            <b>Auditoría & Retención</b> — bitácora por usuario/acción/IP; retención por entidad; purgas programadas. <span class="tag">Audit</span>
+          </label>
+        </div>
+        <div class="task" data-module="Seguridad">
+          <label><input type="checkbox" class="chk" data-epic="EX Transversales">
+            <b>Cifrado de PII</b> — pgcrypto/Vault; mascarado en UI y logs. <span class="tag">PII</span>
+          </label>
+        </div>
+      </div>
+    </details>
+  </section>
+</main>
+
+<section class="two" style="margin-top:18px">
+  <article class="card">
+    <h2>Ensamble local (Linux) — paso a paso</h2>
+    <ol>
+      <li>Prereqs: <span class="kbd">Docker</span> / <span class="kbd">docker compose</span>, <span class="kbd">Node 20+</span>, <span class="kbd">pnpm</span>.</li>
+      <li>Clona repos/apps (mono o multi) y copia <span class="kbd">.env.example</span>→<span class="kbd">.env</span>.</li>
+      <li>Levanta bases y utilidades: <span class="kbd">docker compose up -d postgres redis minio mailhog prometheus grafana keycloak</span>.</li>
+      <li>Inicializa Keycloak (realms/roles) con un script de semillas.</li>
+      <li>Backends (NestJS/FastAPI): <span class="kbd">pnpm i && pnpm start:dev</span> en cada servicio.</li>
+      <li>Front (Next.js backoffice): <span class="kbd">pnpm dev</span>.</li>
+      <li>Configura Gateway (routes, rate-limit, OIDC introspection).</li>
+      <li>Observabilidad: verifica métricas en Grafana y trazas básicas.</li>
+    </ol>
+    <p class="foot">Esta base sigue el enfoque por olas/EPICs y contextos (CRM, CFDI, Pagos, Red, Tickets, Inventario, BI, Integraciones, Seguridad). :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}</p>
+  </article>
+
+  <article class="card">
+    <h2>Plan de pruebas (100–200 casos) + datos sintéticos</h2>
+    <h3>Distribución</h3>
+    <ul>
+      <li><b>Contratos/API (30–50)</b>: validación OpenAPI (Schemathesis/Dredd), status/errores, RBAC por rol.</li>
+      <li><b>E2E UI (40–60)</b>: Playwright UI: login, alta cliente, emitir CFDI (fake), pago (webhook dup), corte/reconexión (sim).</li>
+      <li><b>Integración (20–30)</b>: CRM↔CFDI, CFDI↔Pagos, Pagos↔Cortes, Cortes↔DriverSim.</li>
+      <li><b>Idempotencia (10–15)</b>: reenvía el mismo webhook de pago 10 veces → 1 sola aplicación. <span class="tag">webhooks</span></li>
+      <li><b>Sagas (10–15)</b>: falla en paso 3/5 y verifica compensación/rollback. <span class="tag">saga</span></li>
+      <li><b>Performance “smoke” (10)</b>: k6/Artillery p95 &lt; 300ms en 3 endpoints críticos (lectura/POST). </li>
+      <li><b>Seguridad (10–15)</b>: rutas privadas, scopes, intento de N+1/IDOR, exportaciones.</li>
+    </ul>
+    <h3>Casos representativos</h3>
+    <ul>
+      <li>CFDI sandbox: emitir/cancelar/re-facturar; retener XML/PDF en MinIO. <span class="tag">CFDI</span></li>
+      <li>Pagos: SPEI/tarjeta (modo test), conciliación automática, reintentos y duplicados. <span class="tag">Pagos</span></li>
+      <li>Cortes: lote por zona con canary batch, límites de tasa, reconexión automática tras pago. <span class="tag">Cortes</span></li>
+      <li>GPON/HFC: alta/baja ONT, ajuste de perfil, lectura de potencia y degradación simulada. <span class="tag">Red</span></li>
+      <li>Dashboard BI: cálculo de ARPU/churn/morosidad/SLA y filtros; export CSV. <span class="tag">BI</span></li>
+    </ul>
+    <p class="foot">Estas pruebas cubren KPIs/BI, escalabilidad (colas/particionamiento) y operación de campo, como piden historias y roadmap. :contentReference[oaicite:5]{index=5} :contentReference[oaicite:6]{index=6}</p>
+  </article>
+</section>
+
+<section class="card" style="margin-top:14px">
+  <h2>Simulación de tecnologías que “no tengo” (pagos, routers, mikros, PAC)</h2>
+  <div class="two">
+    <div>
+      <h3>Pagos</h3>
+      <ul>
+        <li><b>Stripe/Mercado Pago (test mode)</b>: usa llaves de prueba; activa <i>webhooks</i> a <span class="mono">/webhooks/pagos</span>.</li>
+        <li><b>Reintentos/idempotencia</b>: persiste <i>idempotency-key</i>/<i>event.id</i> y descarta duplicados.</li>
+        <li><b>Simulador SPEI</b>: CLI que publique eventos <span class="mono">pago_confirmado</span> con cuerpo SPEI “fake”.</li>
+      </ul>
+      <h3>CFDI (PAC)</h3>
+      <ul>
+        <li><b>PAC Fake</b>: endpoint local <span class="mono">/pac/timbra</span> que retorna XML/PDF de ejemplo y acuses; relaciona CFDI de pago.</li>
+        <li><b>Almacenamiento</b>: guarda XML/PDF en MinIO y registra UUID/folio para cancelación/re-factura.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Red / Routers / Mikrotik</h3>
+      <ul>
+        <li><b>DriverSim GPON/HFC</b> (FastAPI): REST para <i>alta/baja ONT</i>, <i>perfil</i>, <i>potencia</i>, <i>alarma nodo</i>.</li>
+        <li><b>SNMP sim</b> (opcional): usa <i>snmpsimd</i> con MIB mínima para lecturas de OLT/nodos.</li>
+        <li><b>NETCONF sim</b> (opcional): contenedor <i>netopeer2</i> con YANG dummy para aprovisionamiento.</li>
+        <li><b>Mikro</b> sin HW: implementa adaptadores que llaman DriverSim; cambia por driver real después.</li>
+      </ul>
+      <h3>Notificaciones</h3>
+      <ul>
+        <li><b>MailHog</b> para email, “modo prueba” para SMS/WhatsApp; plantillas versionadas.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="foot">La estrategia sigue EPICs y principios de idempotencia, sagas y desacoplo por contexto (pagos/CFDI/red/inventario/BI). :contentReference[oaicite:7]{index=7} :contentReference[oaicite:8]{index=8}</p>
+</section>
+
+<section class="card" style="margin-top:14px">
+  <h2>Definición de “Hecho” (DoD) por EPIC</h2>
+  <ul>
+    <li><b>E0 Fundaciones</b>: login OIDC + RBAC, CI con pruebas, métricas/health, gateway con rate-limit.</li>
+    <li><b>E1 Core Comercial</b>: alta cliente/contrato; CFDI sandbox emite/cancela; pagos test con webhooks idempotentes; notificaciones email.</li>
+    <li><b>E2 Campo & Red</b>: WO básica; corte/reconexión funcional con DriverSim; canary batch y rollback.</li>
+    <li><b>E3 Soporte & Calidad</b>: tickets con SLA básicos; diagnóstico; CSAT.</li>
+    <li><b>E4 Inventario & BI</b>: inventario con serial; dashboard con KPIs y filtros; export CSV.</li>
+    <li><b>EX Transversales</b>: API pública con scopes y firma; auditoría con retención y purgas.</li>
+  </ul>
+  <p class="foot">DoD refleja historias y KPIs clave (ARPU, churn, SLA, MTTR/MTBF), además de API y auditoría. :contentReference[oaicite:9]{index=9} :contentReference[oaicite:10]{index=10}</p>
+</section>
+
+<footer class="foot" style="margin-top:12px">
+  MVP listo para ajustar/expandir a Producción: cambiar DriverSim→drivers reales, PAC fake→PAC real y canales de pago a live.
+</footer>
+
+<script>
+/* ---------- Checklist logic ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const storageKey = "xp_mvp_plan_v1";
+function recalc(){
+  const chks = $$(".chk");
+  const done = chks.filter(c=>c.checked).length;
+  $("#totals").textContent = `${done}/${chks.length}`;
+  const pct = chks.length? Math.round(done*100/chks.length):0;
+  $("#pct").textContent = pct+"%";
+  $("#bar").style.width = pct+"%";
+  // per-epic counters
+  const byEpic = {};
+  chks.forEach(c=>{
+    const e = c.dataset.epic;
+    byEpic[e] ??= {d:0,t:0};
+    byEpic[e].t++; if(c.checked) byEpic[e].d++;
+  });
+  Object.entries(byEpic).forEach(([e,{d,t}])=>{
+    const id = e.split(" ")[0]+"-count"; // E0-count, E1-count...
+    const pill = document.getElementById(id);
+    if(pill) pill.textContent = `${d}/${t}`;
+  });
+}
+function persist(){
+  const state = $$(".chk").map(c=>({id:c.closest(".task").dataset.module+"|"+c.dataset.epic+"|"+c.labels[0].innerText.trim().slice(0,120), v:c.checked}));
+  localStorage.setItem(storageKey, JSON.stringify(state));
+}
+function restore(){
+  const raw = localStorage.getItem(storageKey);
+  if(!raw) return recalc();
+  const state = new Map(JSON.parse(raw).map(o=>[o.id,o.v]));
+  $$(".chk").forEach(c=>{
+    const id = c.closest(".task").dataset.module+"|"+c.dataset.epic+"|"+c.labels[0].innerText.trim().slice(0,120);
+    c.checked = !!state.get(id);
+  });
+  recalc();
+}
+function filter(){
+  const q = $("#q").value.toLowerCase();
+  const epic = $("#epicFilter").value;
+  const mod = $("#moduleFilter").value;
+  const onlyPend = $("#onlyPending").checked;
+  // details open/close according to filter
+  $$("#epics details.epic").forEach(d=>{
+    const matchesEpic = epic==="ALL" || d.dataset.epic===epic;
+    let any = false;
+    d.querySelectorAll(".task").forEach(t=>{
+      const text = t.innerText.toLowerCase();
+      const mEpic = matchesEpic;
+      const mMod = (mod==="ALL" || t.dataset.module===mod);
+      const mQ = (!q || text.includes(q));
+      const mPend = (!onlyPend || !t.querySelector(".chk").checked);
+      const show = mEpic && mMod && mQ && mPend;
+      t.classList.toggle("hidden", !show);
+      if(show) any = true;
+    });
+    d.classList.toggle("hidden", !any);
+    d.open = any; // auto abrir si hay match
+  });
+  recalc();
+}
+function initEpics(){
+  const epics = [...new Set($$(".chk").map(c=>c.dataset.epic))];
+  // lista y selector
+  const ul = $("#epicList");
+  const sel = $("#epicFilter");
+  epics.forEach(e=>{
+    const li = document.createElement("li");
+    li.textContent = e; ul.appendChild(li);
+    const op = document.createElement("option");
+    op.value = e; op.textContent = e; sel.appendChild(op);
+  });
+}
+document.addEventListener("change", e=>{
+  if(e.target.matches(".chk")){
+    persist(); recalc();
+    if($("#onlyPending").checked) filter();
+  }
+});
+["q","epicFilter","moduleFilter","onlyPending"].forEach(id=>$("#"+id).addEventListener("input", filter));
+$("#expand").onclick = () => $$("#epics details").forEach(d=>d.open=true);
+$("#collapse").onclick = () => $$("#epics details").forEach(d=>d.open=false);
+$("#save").onclick = () => { persist(); alert("Progreso guardado ✅"); };
+$("#clear").onclick = () => { localStorage.removeItem(storageKey); restore(); filter(); };
+$("#export").onclick = () => {
+  const data = {
+    ts: new Date().toISOString(),
+    done: $$(".chk").filter(c=>c.checked).map(c=>({
+      epic:c.dataset.epic, module:c.closest(".task").dataset.module, text:c.labels[0].innerText.trim()
+    }))
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = Object.assign(document.createElement("a"),{href:URL.createObjectURL(blob),download:"xp-mvp-export.json"});
+  a.click(); URL.revokeObjectURL(a.href);
+};
+initEpics(); restore(); filter();
+</script>
+</body>
+</html>

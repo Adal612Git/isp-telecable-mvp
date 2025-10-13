@@ -1,0 +1,177 @@
+services:
+  clientes:
+    build:
+      context: ${PWD}
+      dockerfile: services/clientes/Dockerfile
+    container_name: app-clientes
+    ports: ["${HOST_CLIENTES_PORT:-8000}:8000"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+      REDIS_HOST: infra-redis
+      KAFKA_BROKER: infra-kafka:29093
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://infra-jaeger:4318
+    networks: [telecable-net]
+    volumes:
+      - events:/app_events
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8000/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  catalogo:
+    build:
+      context: ${PWD}
+      dockerfile: services/catalogo/Dockerfile
+    container_name: app-catalogo
+    ports: ["${HOST_CATALOGO_PORT:-8001}:8001"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://infra-jaeger:4318
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8001/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  facturacion:
+    build:
+      context: ${PWD}
+      dockerfile: services/facturacion/Dockerfile
+    container_name: app-facturacion
+    ports: ["${HOST_FACTURACION_PORT:-8002}:8002"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+      MINIO_ENDPOINT: http://infra-minio-1:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: admin123
+      MINIO_BUCKET: facturacion
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://infra-jaeger:4318
+    networks: [telecable-net]
+    volumes:
+      - events:/app_events
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8002/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  pagos:
+    build:
+      context: ${PWD}
+      dockerfile: services/pagos/Dockerfile
+    container_name: app-pagos
+    ports: ["${HOST_PAGOS_PORT:-8003}:8003"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+      REDIS_HOST: infra-redis
+      KAFKA_BROKER: infra-kafka:29093
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://infra-jaeger:4318
+    networks: [telecable-net]
+    volumes:
+      - events:/app_events
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8003/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  orquestador:
+    build:
+      context: ${PWD}
+      dockerfile: services/orquestador/Dockerfile
+    container_name: app-orquestador
+    ports: ["${HOST_ORQ_PORT:-8010}:8010"]
+    environment:
+      CLIENTES_URL: http://clientes:8000
+      CATALOGO_URL: http://catalogo:8001
+      FACTURACION_URL: http://facturacion:8002
+      PAGOS_URL: http://pagos:8003
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://infra-jaeger:4318
+    networks: [telecable-net]
+    volumes:
+      - events:/app_events
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8010/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  portal-cliente:
+    build:
+      context: ${PWD}
+      dockerfile: apps/portal-cliente/Dockerfile
+    container_name: app-portal-cliente
+    ports: ["${HOST_PORTAL_PORT:-8088}:80"]
+    environment:
+      HOST_CATALOGO_PORT: ${HOST_CATALOGO_PORT:-8001}
+      HOST_ORQ_PORT: ${HOST_ORQ_PORT:-8010}
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:80',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  backoffice:
+    build:
+      context: ${PWD}
+      dockerfile: apps/backoffice/Dockerfile
+    container_name: app-backoffice
+    ports: ["${HOST_BACKOFFICE_PORT:-8089}:80"]
+    environment:
+      HOST_CLIENTES_PORT: ${HOST_CLIENTES_PORT:-8000}
+      HOST_FACTURACION_PORT: ${HOST_FACTURACION_PORT:-8002}
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:80',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  whatsapp:
+    build:
+      context: ${PWD}
+      dockerfile: services/whatsapp/Dockerfile
+    container_name: app-whatsapp
+    ports: ["${HOST_WHATSAPP_PORT:-8011}:8011"]
+    environment:
+      WHATSAPP_VERIFY_TOKEN: testtoken
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://infra-jaeger:4318
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8011/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  conciliacion-cron:
+    image: alpine:3.20
+    container_name: conciliacion-cron
+    command: >-
+      sh -c "apk add --no-cache curl jq >/dev/null 2>&1; while true; do curl -sf http://pagos:8003/pagos/conciliar | jq -r .csv > /app_events/conciliacion.csv; sleep 86400; done"
+    depends_on:
+      - pagos
+    volumes:
+      - events:/app_events
+    networks: [telecable-net]
+    restart: unless-stopped
+
+networks:
+  telecable-net:
+    external: true
+volumes:
+  events:

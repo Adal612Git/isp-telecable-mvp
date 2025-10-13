@@ -1,0 +1,22 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-data/
+*.pid
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Tests / Coverage
+coverage/
+tests/reports/

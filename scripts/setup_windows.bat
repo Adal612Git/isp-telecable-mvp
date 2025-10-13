@@ -28,6 +28,7 @@ for %%i in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fi"
 if exist "%REPO_ROOT%\docker-compose.yml" (
     pushd "%REPO_ROOT%"
     set "PUSHED=1"
+<<<<<<< HEAD
 ) else (
     if exist "%REPO_ROOT%\isp-telecable-mvp\docker-compose.yml" (
         set "REPO_ROOT=%REPO_ROOT%\isp-telecable-mvp"
@@ -39,6 +40,17 @@ if exist "%REPO_ROOT%\docker-compose.yml" (
     )
 )
 for %%i in (.) do set "REPO_ROOT=%%~fi"
+=======
+) else if exist "%REPO_ROOT%\isp-telecable-mvp\docker-compose.yml" (
+    set "REPO_ROOT=%REPO_ROOT%\isp-telecable-mvp"
+    pushd "%REPO_ROOT%"
+    set "PUSHED=1"
+) else (
+    call :error No se encontro docker-compose.yml. Ejecuta este script desde la carpeta scripts del proyecto.
+    goto fatal
+)
+set "REPO_ROOT=%CD%"
+>>>>>>> f8d52d2fc9a77379dc965d2c872496707b39fd39
 
 call :banner
 call :info Directorio detectado: %REPO_ROOT%
@@ -103,6 +115,7 @@ for /f "usebackq tokens=1,2 delims==" %%A in (".env.ports") do (
     )
 )
 
+<<<<<<< HEAD
 set "WSLENV_PORT_VARS=HOST_CLIENTES_PORT:HOST_CATALOGO_PORT:HOST_FACTURACION_PORT:HOST_PAGOS_PORT:HOST_WHATSAPP_PORT:HOST_ORQ_PORT:HOST_PORTAL_PORT:HOST_BACKOFFICE_PORT:HOST_POSTGRES_PORT:HOST_REDIS_PORT:HOST_ZOOKEEPER_PORT:HOST_KAFKA_PORT_1:HOST_KAFKA_PORT_2:HOST_KEYCLOAK_PORT:HOST_JAEGER_UI_PORT:HOST_JAEGER_THRIFT_PORT:HOST_OTLP_GRPC_PORT:HOST_OTLP_HTTP_PORT:HOST_PROMETHEUS_PORT:HOST_GRAFANA_PORT:HOST_LOKI_PORT:HOST_TEMPO_PORT:HOST_MINIO_API_PORT:HOST_MINIO_CONSOLE_PORT"
 if defined WSLENV (
     set "WSLENV=%WSLENV_PORT_VARS%:!WSLENV!"
@@ -111,6 +124,8 @@ if defined WSLENV (
 )
 set "WSLENV_PORT_VARS="
 
+=======
+>>>>>>> f8d52d2fc9a77379dc965d2c872496707b39fd39
 REM --- Crear red docker si falta ---
 docker network inspect telecable-net >nul 2>&1
 if errorlevel 1 (
@@ -222,5 +237,8 @@ if errorlevel 1 (
     exit /b 1
 )
 exit /b 0
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> f8d52d2fc9a77379dc965d2c872496707b39fd39

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Backoffice - Clientes</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 20px auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; }
+  </style>
+  <script>
+    async function load(){
+      const clientes = await fetch('http://localhost:8000/clientes').then(r=>r.json()).catch(()=>[]);
+      const stats = await fetch('http://localhost:8002/facturacion/stats').then(r=>r.json()).catch(()=>({}));
+      document.getElementById('met_clientes').textContent = clientes.length;
+      document.getElementById('met_fact_total').textContent = stats.total||0;
+      document.getElementById('met_fact_timbradas').textContent = stats.timbradas||0;
+      const tbody = document.querySelector('tbody');
+      clientes.forEach(c=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${c.id}</td><td>${c.nombre}</td><td>${c.rfc}</td><td>${c.email}</td><td>${c.telefono}</td><td>${c.zona}</td><td>${c.plan_id||''}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    window.addEventListener('DOMContentLoaded', load);
+  </script>
+</head>
+<body>
+  <h1>Backoffice</h1>
+  <section>
+    <h2>Métricas</h2>
+    <p>Total clientes: <strong id="met_clientes">0</strong></p>
+    <p>Facturas total: <strong id="met_fact_total">0</strong> | Timbradas: <strong id="met_fact_timbradas">0</strong></p>
+  </section>
+  <h2>Clientes</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Nombre</th><th>RFC</th><th>Email</th><th>Teléfono</th><th>Zona</th><th>Plan</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</body>
+</html>
