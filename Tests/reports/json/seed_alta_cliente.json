@@ -1,0 +1,1 @@
+{"cliente":{"id":1,"nombre":"Juan Pérez","rfc":"AAA010101AAA","email":"juan@example.com","telefono":"5555555555","estatus":"activo","zona":"NORTE","plan_id":"INT100"},"facturas":[{"uuid":"a2987af7-1a80-425e-8228-4a28c6c391f8","estatus":"pendiente"}]}

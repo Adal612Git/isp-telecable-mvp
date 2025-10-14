@@ -4,6 +4,7 @@ import hashlib
 import hmac
 from uuid import uuid4
 from fastapi import FastAPI, Request, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from opentelemetry import trace
@@ -12,7 +13,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from prometheus_fastapi_instrumentator import Instrumentator
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
+except Exception:  # pragma: no cover - allow unit tests without the dependency
+    class Instrumentator:  # type: ignore
+        def instrument(self, app):
+            return self
+        def expose(self, app, endpoint: str = "/metrics"):
+            return None
 
 from .logging_conf import configure_logging
 from .db import init_db, SessionLocal
@@ -36,6 +44,15 @@ def setup_tracing():
 
 
 app = FastAPI(title="Servicio Pagos", version="0.1.0")
+
+# Enable permissive CORS for dev/E2E
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")

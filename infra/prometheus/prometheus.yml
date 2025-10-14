@@ -1,0 +1,72 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Microservices (FastAPI)
+  - job_name: "clientes"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app-clientes:8000"]
+
+  - job_name: "catalogo"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app-catalogo:8001"]
+
+  - job_name: "facturacion"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app-facturacion:8002"]
+
+  - job_name: "pagos"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app-pagos:8003"]
+
+  - job_name: "orquestador"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app-orquestador:8010"]
+
+  - job_name: "whatsapp"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app-whatsapp:8011"]
+
+  # Infra: MinIO (built-in Prometheus metrics)
+  - job_name: "minio"
+    scheme: http
+    metrics_path: "/minio/v2/metrics/node"
+    static_configs:
+      - targets: ["infra-minio:9000"]
+
+  # Infra: Redis via exporter
+  - job_name: "redis"
+    static_configs:
+      - targets: ["infra-redis-exporter:9121"]
+
+  # Infra: Postgres via exporter
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["infra-postgres-exporter:9187"]
+
+  # Infra: Kafka via exporter
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["infra-kafka-exporter:9308"]
+
+  # Optional: Loki and Tempo
+  - job_name: "loki"
+    static_configs:
+      - targets: ["infra-loki:3100"]
+
+  - job_name: "tempo"
+    static_configs:
+      - targets: ["infra-tempo:3200"]
+

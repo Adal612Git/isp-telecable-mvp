@@ -1,7 +1,14 @@
 import os
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import PlainTextResponse, JSONResponse
-from prometheus_fastapi_instrumentator import Instrumentator
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
+except Exception:  # pragma: no cover
+    class Instrumentator:  # type: ignore
+        def instrument(self, app):
+            return self
+        def expose(self, app, endpoint: str = "/metrics"):
+            return None
 from opentelemetry import trace
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider

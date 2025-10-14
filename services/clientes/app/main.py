@@ -1,6 +1,7 @@
 import os
 import logging
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from opentelemetry import trace
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
@@ -34,6 +35,16 @@ def setup_tracing():
 
 
 app = FastAPI(title="Servicio Clientes", version="0.1.0")
+
+
+# Enable permissive CORS for Backoffice/Portal usage in dev/E2E
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")

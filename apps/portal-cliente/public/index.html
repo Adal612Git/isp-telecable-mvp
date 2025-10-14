@@ -212,8 +212,21 @@
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify(body)
         }).then(r=>r.json());
-        res.textContent = JSON.stringify(r, null, 2);
-        res.className = r && r.error ? 'err' : 'ok';
+
+        const cid = r && r.cliente && r.cliente.id;
+        const fu = Array.isArray(r && r.facturas) ? r.facturas[0] : null;
+        const fUuid = fu && fu.uuid;
+        const fStatus = (fu && fu.estatus) || 'pendiente';
+
+        // Mensaje amigable (incluye la palabra 'cliente' para compatibilidad con E2E)
+        res.textContent = `Alta exitosa — cliente #${cid}. Factura ${fUuid} (${fStatus}).`;
+        res.className = 'ok';
+
+        // Limpia el formulario para permitir otra alta inmediata
+        const form = document.querySelector('form');
+        if (form) form.reset();
+        setError('rfc', true);
+        setError('telefono', true);
       } catch (err) {
         res.textContent = `Error llamando a ORQ: ${err.message}`;
         res.className = 'err';

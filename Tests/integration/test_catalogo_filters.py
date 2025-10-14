@@ -2,6 +2,26 @@ import requests
 
 
 import os
+from pathlib import Path
+
+
+def _load_env_ports():
+    p = Path('.env.ports')
+    if not p.exists():
+        return
+    try:
+        for line in p.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            if k and (k not in os.environ):
+                os.environ[k.strip()] = v.strip()
+    except Exception:
+        pass
+
+
+_load_env_ports()
 BASE = f"http://localhost:{os.getenv('HOST_CATALOGO_PORT','8001')}"
 
 

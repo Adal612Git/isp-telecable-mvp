@@ -1,0 +1,4 @@
+endpoint,time_total
+/clientes/health,0.001533
+/catalogo/planes,0.003484
+/facturacion/health,0.002060

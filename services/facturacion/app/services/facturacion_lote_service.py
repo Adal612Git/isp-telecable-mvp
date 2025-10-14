@@ -27,7 +27,7 @@ FACTURACION_LOTE_TIEMPO_TOTAL_MS = Counter(
 )
 
 
-async def procesar_lote_csv(file: UploadFile) -> Dict[str, Any]:
+async def procesar_lote_csv(file: UploadFile, idem: bool = True) -> Dict[str, Any]:
     """
     Procesa un CSV con encabezado: cliente_id,plan_id,monto,folio_interno
     - Inserta facturas con estatus 'emitida' por cada registro válido
@@ -85,16 +85,31 @@ async def procesar_lote_csv(file: UploadFile) -> Dict[str, Any]:
                     if monto < 0:
                         raise ValueError("Monto negativo")
 
-                    # Insertar factura emitida
-                    fac = Factura(
-                        uuid=folio,  # usar folio_interno como UUID lógico
-                        cliente_id=cliente_id,
-                        total=monto,
-                        xml_path=f"lotes/{out_filename}",
-                        estatus="emitida",
-                    )
-                    db.add(fac)
-                    exitosos += 1
+                    existing = db.query(Factura).filter(Factura.uuid == folio).first()
+                    if existing:
+                        if idem:
+                            # Idempotente: actualiza registro existente
+                            existing.cliente_id = cliente_id
+                            existing.total = monto
+                            existing.xml_path = f"lotes/{out_filename}"
+                            existing.estatus = "emitida"
+                            exitosos += 1
+                            detalle = "Actualizado (idempotente)"
+                        else:
+                            # Estricto: no tocar y marcar como duplicado
+                            estatus = "DUPLICADO"
+                            detalle = "UUID ya existe"
+                            fallidos += 1
+                    else:
+                        fac = Factura(
+                            uuid=folio,
+                            cliente_id=cliente_id,
+                            total=monto,
+                            xml_path=f"lotes/{out_filename}",
+                            estatus="emitida",
+                        )
+                        db.add(fac)
+                        exitosos += 1
                 except Exception as e:  # noqa: BLE001 - error de validación/negocio
                     estatus = "ERROR"
                     detalle = str(e)
@@ -158,4 +173,3 @@ async def procesar_lote_csv(file: UploadFile) -> Dict[str, Any]:
         "tiempo_total_ms": int(tiempos_ms_sum),
         "csv_resultado": out_filename,
     }
-

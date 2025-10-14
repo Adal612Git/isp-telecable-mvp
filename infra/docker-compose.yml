@@ -105,6 +105,8 @@ services:
     container_name: infra-prometheus
     ports:
       - "${HOST_PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     networks:
       - telecable-net
     restart: unless-stopped
@@ -114,6 +116,48 @@ services:
     container_name: infra-grafana
     ports:
       - "${HOST_GRAFANA_PORT:-3000}:3000"
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  # Redis Exporter for Prometheus
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: infra-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://infra-redis:6379
+    ports:
+      - "${HOST_REDIS_EXPORTER_PORT:-9121}:9121"
+    depends_on:
+      - redis
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  # Postgres Exporter for Prometheus
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: infra-postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://isp_admin:admin@infra-postgres:5432/isp_mvp?sslmode=disable
+    ports:
+      - "${HOST_POSTGRES_EXPORTER_PORT:-9187}:9187"
+    depends_on:
+      - postgres
+    networks:
+      - telecable-net
+    restart: unless-stopped
+
+  # Kafka Exporter for Prometheus (connects to internal listener)
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: infra-kafka-exporter
+    command:
+      - "--kafka.server=infra-kafka:29093"
+    ports:
+      - "${HOST_KAFKA_EXPORTER_PORT:-9308}:9308"
+    depends_on:
+      - kafka
     networks:
       - telecable-net
     restart: unless-stopped

@@ -10,7 +10,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from prometheus_fastapi_instrumentator import Instrumentator
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
+except Exception:  # pragma: no cover
+    class Instrumentator:  # type: ignore
+        def instrument(self, app):
+            return self
+        def expose(self, app, endpoint: str = "/metrics"):
+            return None
 from .logging_conf import configure_logging
 
 

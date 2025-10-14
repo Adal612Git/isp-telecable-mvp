@@ -2,6 +2,7 @@ import os
 import uuid as uuidlib
 from datetime import datetime
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from opentelemetry import trace
@@ -10,12 +11,23 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-import boto3
+# Optional deps for local testing: boto3 and prometheus instrumentator
+try:
+    import boto3  # type: ignore
+except Exception:  # pragma: no cover - tolerate missing boto3 in unit envs
+    boto3 = None
 
 from .logging_conf import configure_logging
 from .db import init_db, SessionLocal
 from .models import Factura
-from prometheus_fastapi_instrumentator import Instrumentator
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
+except Exception:  # pragma: no cover - provide a no-op fallback
+    class Instrumentator:  # type: ignore
+        def instrument(self, app):
+            return self
+        def expose(self, app, endpoint: str = "/metrics"):
+            return None
 
 
 service_name = os.getenv("SERVICE_NAME", "facturacion")
@@ -38,6 +50,14 @@ def s3_client():
     endpoint = os.getenv("S3_ENDPOINT") or os.getenv("MINIO_ENDPOINT", "http://minio:9000")
     access = os.getenv("S3_ACCESS_KEY") or os.getenv("MINIO_ACCESS_KEY", "minioadmin")
     secret = os.getenv("S3_SECRET_KEY") or os.getenv("MINIO_SECRET_KEY", "minioadmin")
+    if boto3 is None:
+        # Return a dummy object to trigger local fallback paths
+        class _Dummy:
+            def create_bucket(self, *a, **k):
+                raise RuntimeError("boto3 not available")
+            def put_object(self, *a, **k):
+                raise RuntimeError("boto3 not available")
+        return _Dummy()
     return boto3.client(
         "s3",
         endpoint_url=endpoint,
@@ -48,6 +68,15 @@ def s3_client():
 
 
 app = FastAPI(title="Servicio Facturación", version="0.1.0")
+
+# Enable permissive CORS for Backoffice usage in dev/E2E
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 try:
     # Registrar rutas separadas
     from .routes.facturacion_lote import router as fact_lote_router

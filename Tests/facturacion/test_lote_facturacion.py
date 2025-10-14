@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import time
 import pathlib
 import requests
@@ -16,12 +17,29 @@ def _ensure_sample_csv(path: str):
         )
 
 
+def _load_env_ports():
+    p = Path('.env.ports')
+    if not p.exists():
+        return
+    try:
+        for line in p.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            if k and (k not in os.environ):
+                os.environ[k.strip()] = v.strip()
+    except Exception:
+        pass
+
+
 @pytest.mark.integration
 def test_lote_facturacion_smoke():
     """Smoke test que valida POST /facturacion/lote contra el servicio en docker.
     Requiere que el servicio esté arriba (docker-compose) y HOST_FACTURACION_PORT configurado.
     """
-    port = os.environ.get("HOST_FACTURACION_PORT", "8006")
+    _load_env_ports()
+    port = os.environ.get("HOST_FACTURACION_PORT", "8003")
     base = f"http://localhost:{port}"
     url = f"{base}/facturacion/lote"
 
@@ -43,4 +61,3 @@ def test_lote_facturacion_smoke():
     # Verificación básica del nombre de archivo
     # La verificación de existencia real se hace dentro del contenedor del servicio.
     # Se deja como smoke check del nombre.
-
