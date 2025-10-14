@@ -119,6 +119,35 @@ def health():
     return {"status": "ok", "service": service_name}
 
 
+@app.post("/contratos/generar")
+def contratos_generar(payload: dict):
+    """Genera un PDF de contrato (stub) y devuelve enlace.
+    Entrada esperada: {"cliente_id": int, "plan_id": str}
+    """
+    cliente_id = int(payload.get("cliente_id", 0))
+    plan_id = str(payload.get("plan_id", ""))
+    if not cliente_id or not plan_id:
+        raise HTTPException(status_code=400, detail="Datos incompletos")
+    key = f"contratos/cliente-{cliente_id}-{plan_id}.pdf"
+    # Contenido PDF mínimo (stub) – los visores suelen tolerar encabezado PDF
+    pdf_bytes = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+    try:
+        s3 = s3_client()
+        bucket = os.getenv("S3_BUCKET") or os.getenv("MINIO_BUCKET", "cfdi")
+        # s3_client puede ser dummy en entornos sin boto3 (cae a except)
+        if hasattr(s3, 'put_object'):
+            s3.put_object(Bucket=bucket, Key=key, Body=pdf_bytes, ContentType="application/pdf")
+            url = f"s3://{bucket}/{key}"
+        else:
+            raise Exception("no s3")
+    except Exception:
+        os.makedirs("/tmp/contratos", exist_ok=True)
+        with open(f"/tmp/contratos/{key.split('/')[-1]}", "wb") as f:
+            f.write(pdf_bytes)
+        url = f"file:///tmp/contratos/{key.split('/')[-1]}"
+    return {"ok": True, "url": url}
+
+
 def generar_cfdi_xml(cliente_id: int, total: float, uuid: str) -> str:
     # Simplified CFDI 4.0-like XML
     return (
@@ -194,6 +223,19 @@ def generar_masiva(lote: list[dict], bg: BackgroundTasks, csv: int = 0):
         db.close()
 
 
+@app.get("/facturacion/stats")
+def stats():
+    db: Session = SessionLocal()
+    try:
+        total = db.query(Factura).count()
+        timbradas = db.query(Factura).filter(Factura.estatus == "timbrado").count()
+        pendientes = db.query(Factura).filter(Factura.estatus == "pendiente").count()
+        canceladas = db.query(Factura).filter(Factura.estatus == "cancelado").count()
+        return {"total": total, "timbradas": timbradas, "pendientes": pendientes, "canceladas": canceladas}
+    finally:
+        db.close()
+
+
 @app.get("/facturacion/{uuid}")
 def obtener_factura(uuid: str):
     db: Session = SessionLocal()
@@ -220,17 +262,7 @@ def cancelar(uuid: str):
         db.close()
 
 
-@app.get("/facturacion/stats")
-def stats():
-    db: Session = SessionLocal()
-    try:
-        total = db.query(Factura).count()
-        timbradas = db.query(Factura).filter(Factura.estatus == "timbrado").count()
-        pendientes = db.query(Factura).filter(Factura.estatus == "pendiente").count()
-        canceladas = db.query(Factura).filter(Factura.estatus == "cancelado").count()
-        return {"total": total, "timbradas": timbradas, "pendientes": pendientes, "canceladas": canceladas}
-    finally:
-        db.close()
+ 
 
 
 async def consume_events():

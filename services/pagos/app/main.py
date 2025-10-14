@@ -113,18 +113,6 @@ def procesar_pago(body: dict, idempotency_key: str | None = Header(default=None,
         db.close()
 
 
-@app.get("/pagos/{referencia}")
-def obtener_pago(referencia: str):
-    db: Session = next(get_db())
-    try:
-        p = db.query(Pago).filter(Pago.referencia == referencia).first()
-        if not p:
-            raise HTTPException(status_code=404, detail="No encontrado")
-        return {"referencia": p.referencia, "estatus": p.estatus, "monto": p.monto}
-    finally:
-        db.close()
-
-
 @app.post("/pagos/webhook")
 async def webhook(request: Request, x_signature: str | None = Header(default=None)):
     secret = os.getenv("WEBHOOK_SECRET", "devsecret")
@@ -159,6 +147,18 @@ def conciliar():
             rows.append(f"{p.referencia},{p.monto:.2f},{p.estatus},{'true' if conc and conc.conciliado else 'false'}")
         csv = "\n".join(rows)
         return JSONResponse(content={"csv": csv})
+    finally:
+        db.close()
+
+
+@app.get("/pagos/{referencia}")
+def obtener_pago(referencia: str):
+    db: Session = next(get_db())
+    try:
+        p = db.query(Pago).filter(Pago.referencia == referencia).first()
+        if not p:
+            raise HTTPException(status_code=404, detail="No encontrado")
+        return {"referencia": p.referencia, "estatus": p.estatus, "monto": p.monto}
     finally:
         db.close()
 

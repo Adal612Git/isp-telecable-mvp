@@ -1,0 +1,27 @@
+groups:
+  - name: telecable-sla
+    rules:
+      - alert: HighErrorRate
+        expr: sum by (job) (rate(http_requests_total{status=~"5.."}[5m])) / sum by (job) (rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High error rate ({{ $labels.job }})
+          description: More than 1% errors in the last 5m.
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum by (le, job) (rate(http_request_duration_seconds_bucket[5m]))) > 1.0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: High p95 latency ({{ $labels.job }})
+          description: p95 latency > 1s in the last 10m.
+      - alert: TicketsSlaBreaches
+        expr: tickets_sla_breaches > 0
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: Tickets with SLA breached
+          description: There are tickets past SLA.

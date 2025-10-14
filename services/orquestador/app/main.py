@@ -98,6 +98,8 @@ async def saga_alta_cliente(body: dict):
 async def saga_procesar_pago(body: dict):
     pagos = os.getenv("PAGOS_URL", "http://pagos:8003")
     fact = os.getenv("FACTURACION_URL", "http://facturacion:8002")
+    wa_url = os.getenv("WHATSAPP_URL", "http://whatsapp:8011")
+    red_url = os.getenv("RED_URL", "http://red:8020")
     async with httpx.AsyncClient(timeout=10.0) as client:
         # Process payment
         r = await client.post(f"{pagos}/pagos/procesar", json=body, headers={"Idempotency-Key": body.get("idem", "")})
@@ -105,7 +107,26 @@ async def saga_procesar_pago(body: dict):
             raise HTTPException(status_code=400, detail=f"error pagos: {r.text}")
         pago = r.json()
         # In a real flow, reconcile and possibly trigger invoice payment complement
-        return {"pago": pago, "conciliado": True}
+        # Send WhatsApp notification (emulado)
+        try:
+            await client.post(f"{wa_url}/send-template", json={
+                "to": body.get("to", "0000000000"),
+                "template": "pago_confirmado",
+                "vars": {"referencia": pago.get("referencia")}
+            })
+        except Exception:
+            pass
+        # Reconectar tras pago conciliado (emulado)
+        try:
+            cli_id = int(body.get("cliente_id")) if body.get("cliente_id") is not None else None
+        except Exception:
+            cli_id = None
+        if cli_id:
+            try:
+                await client.post(f"{red_url}/router/reconectar", json={"cliente_id": cli_id})
+            except Exception:
+                pass
+        return {"pago": pago, "conciliado": True, "notificado": True, "reconectado": bool(cli_id)}
 
 # expose metrics at import time
 Instrumentator().instrument(app).expose(app)

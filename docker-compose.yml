@@ -158,6 +158,97 @@ services:
       interval: 10s
       retries: 10
 
+  instalaciones:
+    build:
+      context: ${PWD}
+      dockerfile: services/instalaciones/Dockerfile
+    container_name: app-instalaciones
+    ports: ["${HOST_INSTALACIONES_PORT:-8005}:8004"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+      RED_URL: http://red:8020
+      INVENTARIO_URL: http://inventario:8008
+      REQUIRED_SKUS: ONT,ROUTER
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8004/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  red:
+    build:
+      context: ${PWD}
+      dockerfile: services/red/Dockerfile
+    container_name: app-red
+    ports: ["${HOST_RED_PORT:-8020}:8020"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+      ROUTER_MODE: ${ROUTER_MODE:-emulated}
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8020/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  inventario:
+    build:
+      context: ${PWD}
+      dockerfile: services/inventario/Dockerfile
+    container_name: app-inventario
+    ports: ["${HOST_INVENTARIO_PORT:-8008}:8008"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8008/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  reportes:
+    build:
+      context: ${PWD}
+      dockerfile: services/reportes/Dockerfile
+    container_name: app-reportes
+    ports: ["${HOST_REPORTES_PORT:-8007}:8007"]
+    environment:
+      API_KEYS: demo-key
+      CATALOGO_URL: http://catalogo:8001
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8007/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+  tickets:
+    build:
+      context: ${PWD}
+      dockerfile: services/tickets/Dockerfile
+    container_name: app-tickets
+    ports: ["${HOST_TICKETS_PORT:-8006}:8006"]
+    environment:
+      DB_HOST: infra-postgres
+      DB_USER: isp_admin
+      DB_PASS: admin
+      DB_NAME: isp_mvp
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:8006/health',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
   conciliacion-cron:
     image: alpine:3.20
     container_name: conciliacion-cron

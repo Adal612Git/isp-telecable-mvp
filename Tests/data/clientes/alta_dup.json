@@ -1,0 +1,10 @@
+{
+  "nombre": "Ana Test Dup",
+  "rfc": "AAA010101AAA",
+  "email": "ana2@example.com",
+  "telefono": "5555555555",
+  "plan_id": "INT100",
+  "domicilio": {"calle":"Calle 2","numero":"5","colonia":"Centro","cp":"01000","ciudad":"CDMX","estado":"CDMX","zona":"NORTE"},
+  "contacto": {"nombre":"Ana","email":"ana2@example.com","telefono":"5555555555"},
+  "consentimiento": {"marketing": true, "terminos": true}
+}

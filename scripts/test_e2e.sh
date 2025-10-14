@@ -13,7 +13,7 @@ fi
 echo "→ E2E: asegurando servicios portal/cat/orq levantados"
 # Permite desactivar rebuilds pesados: export E2E_BUILD=0
 BUILD_ARG=$([ "${E2E_BUILD:-1}" = "1" ] && echo "--build" || true)
-docker compose --env-file .env.ports -f infra/docker-compose.yml -f docker-compose.yml up -d ${BUILD_ARG} postgres catalogo clientes facturacion orquestador portal-cliente >/dev/null
+docker compose --env-file .env.ports -f infra/docker-compose.yml -f docker-compose.yml up -d ${BUILD_ARG} postgres catalogo clientes facturacion orquestador portal-cliente red instalaciones >/dev/null
 
 # Wait for readiness
 PORTAL_PORT=${HOST_PORTAL_PORT:-8088}
