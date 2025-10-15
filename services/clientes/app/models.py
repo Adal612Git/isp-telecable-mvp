@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Numeric, UniqueConstraint
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
@@ -13,6 +15,7 @@ class Cliente(Base):
     telefono: Mapped[str] = mapped_column(String(20), nullable=False)
     estatus: Mapped[str] = mapped_column(String(30), default="activo")
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    router_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     domicilio_id: Mapped[int] = mapped_column(ForeignKey("domicilios.id"))
 

@@ -43,6 +43,7 @@ class ClienteOut(BaseModel):
     estatus: str
     zona: str
     plan_id: Optional[str]
+    router_id: Optional[str] = None
 
     class Config:
         from_attributes = True

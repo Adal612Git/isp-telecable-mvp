@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from sqlalchemy.orm import Session
 import os
 import httpx
+from typing import Literal
+from pydantic import BaseModel
 
 from ..db import SessionLocal
 from .. import models
@@ -122,6 +124,22 @@ async def crear_cliente(
     )
     db.add(contrato)
     db.flush()
+
+    router_service_url = os.getenv("ROUTER_SIMULATOR_URL", "http://router-simulator:8100")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                f"{router_service_url}/routers",
+                json={"cliente_id": cli.id, "nombre": cli.nombre},
+            )
+            resp.raise_for_status()
+            router_payload = resp.json()
+    except httpx.HTTPError as exc:
+        db.rollback()
+        raise HTTPException(status_code=502, detail="No se pudo provisionar el router del cliente") from exc
+
+    cli.router_id = router_payload.get("router_id")
+    db.add(cli)
     db.commit()
 
     out = ClienteOut(
@@ -133,6 +151,7 @@ async def crear_cliente(
         estatus=cli.estatus,
         zona=dom.zona,
         plan_id=contrato.plan_id,
+        router_id=cli.router_id,
     )
 
     # store idempotent response
@@ -174,7 +193,43 @@ def obtener_cliente(id: int, db: Session = Depends(get_db)):
         estatus=cli.estatus,
         zona=dom.zona if dom else "",
         plan_id=plan_id,
+        router_id=cli.router_id,
     )
+
+
+@router.get("/clientes/{id}/router")
+async def obtener_router(id: int, db: Session = Depends(get_db)):
+    cli = db.query(models.Cliente).filter(models.Cliente.id == id).first()
+    if not cli or not cli.router_id:
+        raise HTTPException(status_code=404, detail="Router no encontrado para el cliente")
+
+    router_service_url = os.getenv("ROUTER_SIMULATOR_URL", "http://router-simulator:8100")
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            resp = await client.get(f"{router_service_url}/routers/{cli.router_id}")
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail="No se pudo obtener el estado del router") from exc
+    return resp.json()
+
+
+@router.post("/clientes/{id}/router/power")
+async def controlar_router(id: int, payload: RouterPowerRequest, db: Session = Depends(get_db)):
+    cli = db.query(models.Cliente).filter(models.Cliente.id == id).first()
+    if not cli or not cli.router_id:
+        raise HTTPException(status_code=404, detail="Router no encontrado para el cliente")
+
+    router_service_url = os.getenv("ROUTER_SIMULATOR_URL", "http://router-simulator:8100")
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            resp = await client.post(
+                f"{router_service_url}/routers/{cli.router_id}/power",
+                json={"action": payload.action},
+            )
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail="No se pudo cambiar el estado del router") from exc
+    return resp.json()
 
 
 @router.get("/clientes/{id}/estado")
@@ -253,6 +308,7 @@ def listar_clientes(zona: str | None = None, estatus: str | None = None, db: Ses
                 "estatus": c.estatus,
                 "zona": dom.zona if dom else None,
                 "plan_id": con.plan_id if con else None,
+                "router_id": c.router_id,
             }
         )
     return out
@@ -276,3 +332,7 @@ def admin_stats(x_role: str | None = Header(default=None, alias="X-Role"), db: S
     activos = db.query(models.Cliente).filter(models.Cliente.estatus == "activo").count()
     inactivos = db.query(models.Cliente).filter(models.Cliente.estatus == "inactivo").count()
     return {"total": total, "activos": activos, "inactivos": inactivos}
+class RouterPowerRequest(BaseModel):
+    action: Literal["on", "off", "reboot"]
+
+

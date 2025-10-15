@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import {
   fetchAgenda,
   fetchInventario,
   fetchTickets,
+  fetchRouters,
+  controlRouter,
+  type RouterSummary,
+  type RouterPowerAction,
   marcarTicketResuelto,
   pingHost,
   traceroute,
@@ -20,9 +24,11 @@ import DiagnosticoPage from "./pages/DiagnosticoPage";
 import TicketsPage from "./pages/TicketsPage";
 import PerfilPage from "./pages/PerfilPage";
 import InventarioPage from "./pages/InventarioPage";
+import RoutersPage from "./pages/RoutersPage";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
+  { to: "/routers", label: "Routers" },
   { to: "/agenda", label: "Agenda" },
   { to: "/diagnostico", label: "Diagnóstico" },
   { to: "/tickets", label: "Tickets" },
@@ -36,9 +42,12 @@ export default function App() {
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [inventario, setInventario] = useState<unknown>(null);
   const [ping, setPing] = useState<RouterPing | null>(null);
+  const [routers, setRouters] = useState<RouterSummary[]>([]);
+  const [routerLoading, setRouterLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const authenticated = Boolean(zona && nombre);
 
   useEffect(() => {
     if (!zona) return;
@@ -68,7 +77,19 @@ export default function App() {
     };
   }, [zona]);
 
-  const authenticated = Boolean(zona && nombre);
+  useEffect(() => {
+    if (!authenticated) {
+      setRouters([]);
+      return;
+    }
+    void loadRouters(true);
+    const interval = window.setInterval(() => {
+      void loadRouters(true);
+    }, 5000);
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [authenticated, loadRouters]);
 
   const contextValue = useMemo(
     () => ({
@@ -77,9 +98,32 @@ export default function App() {
       agenda,
       tickets,
       inventario,
-      ping
+      ping,
+      routers
     }),
-    [zona, nombre, agenda, tickets, inventario, ping]
+    [zona, nombre, agenda, tickets, inventario, ping, routers]
+  );
+
+  const loadRouters = useCallback(
+    async (silent = false) => {
+      if (!authenticated) {
+        setRouters([]);
+        return;
+      }
+      if (!silent) setRouterLoading(true);
+      try {
+        const list = await fetchRouters();
+        setRouters(list);
+      } catch (error) {
+        console.error(error);
+        if (!silent) {
+          setStatus("No se pudo actualizar el listado de routers.");
+        }
+      } finally {
+        if (!silent) setRouterLoading(false);
+      }
+    },
+    [authenticated]
   );
 
   const handleLogin = (data: { zona: string; nombre: string }) => {
@@ -133,6 +177,24 @@ export default function App() {
       setStatus("Traceroute no disponible.");
       return [];
     }
+  };
+
+  const handleRouterAction = async (routerId: string, action: RouterPowerAction) => {
+    try {
+      setRouterLoading(true);
+      await controlRouter(routerId, action);
+      await loadRouters(true);
+      setStatus(`Router ${routerId} → ${action}`);
+    } catch (error) {
+      console.error(error);
+      setStatus("No se pudo ejecutar la acción del router.");
+    } finally {
+      setRouterLoading(false);
+    }
+  };
+
+  const handleRoutersRefresh = async () => {
+    await loadRouters(false);
   };
 
   const handleTicketResuelto = async (id: number) => {
@@ -202,6 +264,7 @@ export default function App() {
                   setTickets([]);
                   setInventario(null);
                   setPing(null);
+                  setRouters([]);
                 }}
               >
                 Salir
@@ -245,6 +308,17 @@ export default function App() {
           <Routes>
             <Route path="/" element={<DashboardPage loading={loading} />} />
             <Route
+              path="/routers"
+              element={
+                <RoutersPage
+                  loading={routerLoading}
+                  routers={routers}
+                  onRefresh={handleRoutersRefresh}
+                  onAction={handleRouterAction}
+                />
+              }
+            />
+            <Route
               path="/agenda"
               element={<AgendaPage loading={loading} onChangeEstado={handleInstalacionUpdate} />}
             />
@@ -256,6 +330,45 @@ export default function App() {
             <Route path="/inventario" element={<InventarioPage loading={loading} />} />
             <Route
               path="/perfil"
+              element={
+                <PerfilPage
+                  loading={loading}
+                  onReload={async () => {
+                    if (!zona) return;
+                    const [agendaData, ticketData] = await Promise.all([fetchAgenda(zona), fetchTickets(zona)]);
+                    setAgenda(agendaData);
+                    setTickets(ticketData);
+                  }}
+                />
+              }
+            />
+            <Route path="/tecnico" element={<DashboardPage loading={loading} />} />
+            <Route
+              path="/tecnico/routers"
+              element={
+                <RoutersPage
+                  loading={routerLoading}
+                  routers={routers}
+                  onRefresh={handleRoutersRefresh}
+                  onAction={handleRouterAction}
+                />
+              }
+            />
+            <Route
+              path="/tecnico/agenda"
+              element={<AgendaPage loading={loading} onChangeEstado={handleInstalacionUpdate} />}
+            />
+            <Route
+              path="/tecnico/diagnostico"
+              element={<DiagnosticoPage loading={loading} onPing={handlePing} onTraceroute={handleTraceroute} />}
+            />
+            <Route
+              path="/tecnico/tickets"
+              element={<TicketsPage loading={loading} onResolver={handleTicketResuelto} />}
+            />
+            <Route path="/tecnico/inventario" element={<InventarioPage loading={loading} />} />
+            <Route
+              path="/tecnico/perfil"
               element={
                 <PerfilPage
                   loading={loading}

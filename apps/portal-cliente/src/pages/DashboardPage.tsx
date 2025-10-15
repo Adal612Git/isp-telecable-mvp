@@ -89,7 +89,7 @@ export default function DashboardPage({ loading, onRefresh, onCorte, onReconecta
           </div>
           <div className="flex justify-between">
             <dt>Dirección IP</dt>
-            <dd>{router?.ip_fake ?? "10.0.0.0"}</dd>
+            <dd>{router?.ip ?? "10.0.0.0"}</dd>
           </div>
           <div className="flex justify-between text-xs text-slate-500">
             <dt>Última actualización</dt>

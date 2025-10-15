@@ -1,26 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
   crearTicket,
+  controlarRouter,
   fetchCliente,
   fetchFacturas,
   fetchInstalaciones,
   fetchPagos,
   fetchRouterStatus,
   fetchTickets,
+  mapRouterStatus,
+  registrarCliente,
   registrarPago,
   solicitarCorte,
   solicitarReconectar
 } from "./api/http";
+import type { ClienteCreatePayload, RouterPowerAction } from "./api/http";
 import { useClienteSession } from "./hooks/useClienteSession";
 import { PortalDataContext, type PortalData } from "./context/PortalDataContext";
 import DashboardPage from "./pages/DashboardPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import TicketsPage from "./pages/TicketsPage";
 import ProfilePage from "./pages/ProfilePage";
+import MiRouterPage from "./pages/MiRouterPage";
+import { getServiceUrl } from "./config";
 
 const navItems = [
-  { to: "/", label: "Inicio" },
+  { to: "/cliente", label: "Mi Router" },
+  { to: "/resumen", label: "Resumen" },
   { to: "/pagos", label: "Pagos" },
   { to: "/tickets", label: "Tickets" },
   { to: "/perfil", label: "Perfil" }
@@ -40,6 +47,7 @@ export default function App() {
     router: null,
     zona: null
   });
+  const [routerStreamMode, setRouterStreamMode] = useState<"idle" | "ws" | "polling">("idle");
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,6 +55,7 @@ export default function App() {
   useEffect(() => {
     if (!clienteId) {
       setData((prev) => ({ ...prev, cliente: null }));
+      setRouterStreamMode("idle");
       return;
     }
     let cancelled = false;
@@ -130,6 +139,139 @@ export default function App() {
     const router = await fetchRouterStatus(clienteId);
     setData((prev) => ({ ...prev, router }));
   };
+
+  const handleRegistrarCliente = async (payload: ClienteCreatePayload) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const nuevo = await registrarCliente(payload);
+      updateSession(nuevo.id);
+      setData((prev) => ({
+        ...prev,
+        cliente: nuevo,
+        zona: nuevo.zona ?? null,
+      }));
+      if (nuevo.router_id) {
+        try {
+          const router = await fetchRouterStatus(nuevo.id);
+          setData((prev) => ({ ...prev, router }));
+        } catch (routerErr) {
+          console.warn("No se pudo cargar el router recién creado", routerErr);
+        }
+      }
+      return nuevo;
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo registrar el cliente. Intenta más tarde.");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRouterPower = async (action: RouterPowerAction) => {
+    if (!clienteId) return;
+    try {
+      const router = await controlarRouter(clienteId, action);
+      setData((prev) => ({ ...prev, router }));
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo cambiar el estado del router. Verifica la conexión.");
+      throw err;
+    }
+  };
+
+  useEffect(() => {
+    if (!clienteId || !data.cliente?.router_id) {
+      setRouterStreamMode("idle");
+      return;
+    }
+
+    let cancelled = false;
+    let ws: WebSocket | null = null;
+    let pollTimer: number | null = null;
+
+    const fetchState = async () => {
+      try {
+        const router = await fetchRouterStatus(clienteId);
+        if (!cancelled) {
+          setData((prev) => ({ ...prev, router }));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.warn("Fallo al obtener estado del router", err);
+        }
+      }
+    };
+
+    const startPolling = () => {
+      if (pollTimer !== null) return;
+      setRouterStreamMode("polling");
+      pollTimer = window.setInterval(fetchState, 2000);
+    };
+
+    const stopPolling = () => {
+      if (pollTimer !== null) {
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    };
+
+    const connect = () => {
+      const base = getServiceUrl("VITE_ROUTER_SIM_URL");
+      const routerId = data.cliente?.router_id;
+      if (!base || !routerId) {
+        startPolling();
+        return;
+      }
+      const wsUrl = base.replace(/^http/i, "ws") + `/ws/routers/${routerId}`;
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch (err) {
+        console.warn("No fue posible abrir WebSocket", err);
+        startPolling();
+        return;
+      }
+      ws.onopen = () => {
+        if (cancelled) return;
+        stopPolling();
+        setRouterStreamMode("ws");
+      };
+      ws.onmessage = (event) => {
+        if (cancelled) return;
+        try {
+          const payload = JSON.parse(event.data);
+          const router = mapRouterStatus(clienteId, payload);
+          setData((prev) => ({ ...prev, router }));
+        } catch (err) {
+          console.error("Error procesando evento de router", err);
+        }
+      };
+      ws.onerror = () => {
+        if (!cancelled) {
+          startPolling();
+          ws?.close();
+        }
+      };
+      ws.onclose = () => {
+        if (!cancelled) {
+          ws = null;
+          startPolling();
+        }
+      };
+    };
+
+    fetchState();
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (ws) {
+        ws.close();
+      }
+      stopPolling();
+    };
+  }, [clienteId, data.cliente?.router_id]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -221,7 +363,22 @@ export default function App() {
         <PortalDataContext.Provider value={portalValue}>
           <Routes>
             <Route
-              path="/"
+              path="/cliente"
+              element={
+                <MiRouterPage
+                  loading={loading}
+                  cliente={data.cliente}
+                  router={data.router}
+                  onRegister={handleRegistrarCliente}
+                  onPower={handleRouterPower}
+                  streamMode={routerStreamMode}
+                  globalError={error}
+                />
+              }
+            />
+            <Route path="/" element={<Navigate to="/cliente" replace />} />
+            <Route
+              path="/resumen"
               element={
                 <DashboardPage
                   loading={loading}
