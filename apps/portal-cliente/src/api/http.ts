@@ -10,6 +10,7 @@ export interface ClientSummary {
   estatus: string;
   zona: string;
   plan_id?: string | null;
+  router_id?: string | null;
 }
 
 export interface FacturaSummary {
@@ -51,14 +52,52 @@ export interface InstalacionSummary {
   creadoEn: string;
 }
 
+export interface RouterLogEntry {
+  timestamp: string;
+  message: string;
+}
+
 export interface RouterStatus {
-  cliente_id: number;
+  router_id: string;
+  cliente_id?: number;
+  state: "on" | "off";
+  ip: string;
+  uptime: number;
+  last_state_change: string;
+  logs: RouterLogEntry[];
   conectado: boolean;
   modo: string;
   latencia_ms: number;
-  ip_fake?: string;
   actualizado_en: string;
 }
+
+export interface ClienteCreatePayload {
+  nombre: string;
+  rfc: string;
+  email: string;
+  telefono: string;
+  plan_id: string;
+  domicilio: {
+    calle: string;
+    numero: string;
+    colonia: string;
+    cp: string;
+    ciudad: string;
+    estado: string;
+    zona: string;
+  };
+  contacto: {
+    nombre: string;
+    email: string;
+    telefono: string;
+  };
+  consentimiento: {
+    marketing: boolean;
+    terminos: boolean;
+  };
+}
+
+export type RouterPowerAction = "on" | "off" | "reboot";
 
 const clients: Record<string, AxiosInstance> = {};
 
@@ -111,14 +150,47 @@ const demoState = {
     }
   ] satisfies InstalacionSummary[],
   router: {
+    router_id: "router-demo",
     cliente_id: 1,
+    state: "on",
+    ip: "10.10.1.10",
+    uptime: 1200,
+    last_state_change: new Date().toISOString(),
+    logs: [
+      { timestamp: new Date().toISOString(), message: "Router inicializado" },
+      { timestamp: new Date().toISOString(), message: "Conexión establecida" }
+    ],
     conectado: true,
-    modo: "emulated",
-    latencia_ms: 38,
-    ip_fake: "189.210.10.15",
+    modo: "simulado",
+    latencia_ms: 25,
     actualizado_en: new Date().toISOString()
   } satisfies RouterStatus
 };
+
+export function mapRouterStatus(clienteId: number, raw: any): RouterStatus {
+  const logs = Array.isArray(raw?.logs)
+    ? raw.logs.map((log: any) => ({
+        timestamp: log?.timestamp ?? new Date().toISOString(),
+        message: log?.message ?? String(log ?? "")
+      }))
+    : [];
+  const state = raw?.state === "off" ? "off" : "on";
+  const lastStateChange = raw?.last_state_change ?? raw?.timestamp ?? new Date().toISOString();
+  const latency = typeof raw?.latencia_ms === "number" ? raw.latencia_ms : Math.max(8, Math.round((raw?.uptime ?? 0) % 40) + 12);
+  return {
+    router_id: raw?.router_id ?? raw?.id ?? `router-${clienteId}`,
+    cliente_id: raw?.cliente_id ?? clienteId,
+    state,
+    ip: raw?.ip ?? raw?.ip_fake ?? "10.10.0.10",
+    uptime: typeof raw?.uptime === "number" ? raw.uptime : 0,
+    last_state_change: lastStateChange,
+    logs,
+    conectado: state === "on",
+    modo: raw?.modo ?? "simulado",
+    latencia_ms: latency,
+    actualizado_en: lastStateChange
+  };
+}
 
 async function withDemo<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -174,10 +246,46 @@ export async function fetchInstalaciones(clienteId: number): Promise<Instalacion
 
 export async function fetchRouterStatus(clienteId: number): Promise<RouterStatus> {
   return withDemo(async () => {
-    const http = getClient("VITE_API_RED_URL");
-    const { data } = await http.get<RouterStatus>(`/router/status/${clienteId}`);
-    return data;
+    const http = getClient("VITE_API_CLIENTES_URL");
+    const { data } = await http.get(`/clientes/${clienteId}/router`);
+    return mapRouterStatus(clienteId, data);
   }, { ...demoState.router, cliente_id: clienteId });
+}
+
+export async function registrarCliente(payload: ClienteCreatePayload): Promise<ClientSummary> {
+  return withDemo(
+    async () => {
+      const http = getClient("VITE_API_CLIENTES_URL");
+      const { data } = await http.post<ClientSummary>("/clientes", payload);
+      return data;
+    },
+    {
+      ...demoState.cliente,
+      id: Math.floor(Math.random() * 1000) + 100,
+      nombre: payload.nombre,
+      rfc: payload.rfc,
+      email: payload.email,
+      telefono: payload.telefono,
+      plan_id: payload.plan_id,
+      router_id: demoState.router.router_id
+    }
+  );
+}
+
+export async function controlarRouter(clienteId: number, action: RouterPowerAction): Promise<RouterStatus> {
+  return withDemo(
+    async () => {
+      const http = getClient("VITE_API_CLIENTES_URL");
+      const { data } = await http.post(`/clientes/${clienteId}/router/power`, { action });
+      return mapRouterStatus(clienteId, data);
+    },
+    mapRouterStatus(clienteId, {
+      ...demoState.router,
+      cliente_id: clienteId,
+      state: action === "off" ? "off" : "on",
+      last_state_change: new Date().toISOString()
+    })
+  );
 }
 
 export async function registrarPago(payload: {

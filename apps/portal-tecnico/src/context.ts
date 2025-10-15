@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { InstalacionRow, TicketRow, RouterPing } from "./api";
+import type { InstalacionRow, TicketRow, RouterPing, RouterSummary } from "./api";
 
 export interface TechnicianState {
   zona: string | null;
@@ -8,6 +8,7 @@ export interface TechnicianState {
   tickets: TicketRow[];
   inventario: unknown;
   ping: RouterPing | null;
+  routers: RouterSummary[];
 }
 
 export const TechnicianContext = createContext<TechnicianState>({
@@ -16,7 +17,8 @@ export const TechnicianContext = createContext<TechnicianState>({
   agenda: [],
   tickets: [],
   inventario: null,
-  ping: null
+  ping: null,
+  routers: []
 });
 
 export function useTechnician() {
