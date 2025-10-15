@@ -16,7 +16,7 @@ BUILD_ARG=$([ "${E2E_BUILD:-1}" = "1" ] && echo "--build" || true)
 docker compose --env-file .env.ports -f infra/docker-compose.yml -f docker-compose.yml up -d ${BUILD_ARG} postgres catalogo clientes facturacion orquestador portal-cliente >/dev/null
 
 # Wait for readiness
-PORTAL_PORT=${HOST_PORTAL_PORT:-8088}
+PORTAL_PORT=${HOST_PORTAL_CLIENTE_PORT:-8088}
 CAT_PORT=${HOST_CATALOGO_PORT:-8001}
 ORQ_PORT=${HOST_ORQ_PORT:-8010}
 CLI_PORT=${HOST_CLIENTES_PORT:-8000}
@@ -51,7 +51,7 @@ if ! docker image inspect "$PLAY_IMAGE" >/dev/null 2>&1; then
 fi
 
 docker run --rm --network=host \
-  -e HOST_PORTAL_PORT \
+  -e HOST_PORTAL_CLIENTE_PORT \
   -e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
   -e PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
   -e PW_VERSION="$PW_VERSION" \

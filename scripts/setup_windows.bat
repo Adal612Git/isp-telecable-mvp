@@ -28,7 +28,6 @@ for %%i in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fi"
 if exist "%REPO_ROOT%\docker-compose.yml" (
     pushd "%REPO_ROOT%"
     set "PUSHED=1"
-<<<<<<< HEAD
 ) else (
     if exist "%REPO_ROOT%\isp-telecable-mvp\docker-compose.yml" (
         set "REPO_ROOT=%REPO_ROOT%\isp-telecable-mvp"
@@ -40,17 +39,6 @@ if exist "%REPO_ROOT%\docker-compose.yml" (
     )
 )
 for %%i in (.) do set "REPO_ROOT=%%~fi"
-=======
-) else if exist "%REPO_ROOT%\isp-telecable-mvp\docker-compose.yml" (
-    set "REPO_ROOT=%REPO_ROOT%\isp-telecable-mvp"
-    pushd "%REPO_ROOT%"
-    set "PUSHED=1"
-) else (
-    call :error No se encontro docker-compose.yml. Ejecuta este script desde la carpeta scripts del proyecto.
-    goto fatal
-)
-set "REPO_ROOT=%CD%"
->>>>>>> f8d52d2fc9a77379dc965d2c872496707b39fd39
 
 call :banner
 call :info Directorio detectado: %REPO_ROOT%
@@ -97,13 +85,18 @@ if not exist ".env" (
     call :info .env ya existe, se reutilizara.
 )
 
-call :info Asignando puertos disponibles (.env.ports)...
-bash scripts/allocate_ports.sh --write .env.ports
+call :info Levantando infraestructura con scripts\up.ps1 (puede tardar)...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\up.ps1" -EnvFile ".env.ports"
 if errorlevel 1 (
-    call :error Fallo scripts/allocate_ports.sh. Ejecuta 'bash scripts/allocate_ports.sh --write .env.ports' manualmente para revisar el problema.
+    call :error scripts\up.ps1 fallo. Revisa la salida anterior para más detalle.
     goto fatal
 )
-call :ok Puertos asignados en .env.ports.
+call :ok Servicios levantados correctamente.
+
+if not exist ".env.ports" (
+    call :error No se encontro .env.ports tras ejecutar scripts\up.ps1.
+    goto fatal
+)
 
 REM Cargar variables principales desde .env.ports para mensajes finales
 for /f "usebackq tokens=1,2 delims==" %%A in (".env.ports") do (
@@ -115,7 +108,6 @@ for /f "usebackq tokens=1,2 delims==" %%A in (".env.ports") do (
     )
 )
 
-<<<<<<< HEAD
 set "WSLENV_PORT_VARS=HOST_CLIENTES_PORT:HOST_CATALOGO_PORT:HOST_FACTURACION_PORT:HOST_PAGOS_PORT:HOST_WHATSAPP_PORT:HOST_ORQ_PORT:HOST_PORTAL_PORT:HOST_BACKOFFICE_PORT:HOST_POSTGRES_PORT:HOST_REDIS_PORT:HOST_ZOOKEEPER_PORT:HOST_KAFKA_PORT_1:HOST_KAFKA_PORT_2:HOST_KEYCLOAK_PORT:HOST_JAEGER_UI_PORT:HOST_JAEGER_THRIFT_PORT:HOST_OTLP_GRPC_PORT:HOST_OTLP_HTTP_PORT:HOST_PROMETHEUS_PORT:HOST_GRAFANA_PORT:HOST_LOKI_PORT:HOST_TEMPO_PORT:HOST_MINIO_API_PORT:HOST_MINIO_CONSOLE_PORT"
 if defined WSLENV (
     set "WSLENV=%WSLENV_PORT_VARS%:!WSLENV!"
@@ -124,36 +116,11 @@ if defined WSLENV (
 )
 set "WSLENV_PORT_VARS="
 
-=======
->>>>>>> f8d52d2fc9a77379dc965d2c872496707b39fd39
-REM --- Crear red docker si falta ---
-docker network inspect telecable-net >nul 2>&1
-if errorlevel 1 (
-    call :info Creando red Docker telecable-net...
-    docker network create telecable-net >nul 2>&1
-    if errorlevel 1 (
-        call :error No se pudo crear la red telecable-net. Revisa permisos de Docker.
-        goto fatal
-    )
-    call :ok Red telecable-net creada.
-) else (
-    call :info Red telecable-net ya existe.
-)
-
-REM --- Levantar infraestructura y servicios ---
-call :info Levantando infraestructura y servicios (puede tardar varios minutos)...
-docker compose --env-file ".env.ports" -f "infra/docker-compose.yml" -f "docker-compose.yml" up -d --build
-if errorlevel 1 (
-    call :error El comando docker compose up fallo. Ejecuta 'docker compose --env-file .env.ports -f infra/docker-compose.yml -f docker-compose.yml up' para ver el detalle.
-    goto fatal
-)
-call :ok Servicios levantados correctamente.
-
 REM --- Seed de datos ---
 call :info Ejecutando seed de datos de prueba...
-bash scripts/seed.sh
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\seed.ps1" -EnvFile ".env.ports"
 if errorlevel 1 (
-    call :error El seed fallo. Revisa scripts/seed.sh y el contenedor infra-postgres.
+    call :error scripts\seed.ps1 fallo. Revisa el contenedor infra-postgres y la salida anterior.
     goto fatal
 )
 call :ok Seed completado.
@@ -237,8 +204,3 @@ if errorlevel 1 (
     exit /b 1
 )
 exit /b 0
-<<<<<<< HEAD
-
-
-=======
->>>>>>> f8d52d2fc9a77379dc965d2c872496707b39fd39

@@ -38,15 +38,63 @@ if [[ -f "$OUT_FILE" && $FORCE -eq 0 ]]; then
   exit 0
 fi
 
+if command -v ss >/dev/null 2>&1; then
+  PORT_CHECK_TOOL="ss"
+elif command -v lsof >/dev/null 2>&1; then
+  PORT_CHECK_TOOL="lsof"
+elif command -v python3 >/dev/null 2>&1; then
+  PORT_CHECK_TOOL="python3"
+elif command -v python >/dev/null 2>&1; then
+  PORT_CHECK_TOOL="python"
+else
+  echo "No se encontro una herramienta para verificar puertos libres (ss, lsof o python)." >&2
+  exit 3
+fi
+
 # Check if a TCP port is free on localhost
 is_port_free() {
   local port="$1"
-  # Try ss; fallback to lsof
-  if command -v ss >/dev/null 2>&1; then
-    ! ss -ltn "( sport = :$port )" | awk 'NR>1' | grep -q .
-  else
-    ! lsof -i TCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
-  fi
+  case "$PORT_CHECK_TOOL" in
+    ss)
+      ! ss -ltn "( sport = :$port )" | awk 'NR>1' | grep -q .
+      ;;
+    lsof)
+      ! lsof -i TCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
+      ;;
+    python*)
+      "$PORT_CHECK_TOOL" - "$port" <<'PY'
+import socket
+import sys
+
+port = int(sys.argv[1])
+
+def port_free():
+    families = [(socket.AF_INET, "127.0.0.1")]
+    if hasattr(socket, "AF_INET6"):
+        families.append((socket.AF_INET6, "::1"))
+    for family, addr in families:
+        try:
+            sock = socket.socket(family, socket.SOCK_STREAM)
+        except OSError:
+            continue
+        try:
+            if hasattr(socket, "SO_REUSEADDR"):
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((addr, port))
+        except OSError:
+            sock.close()
+            return False
+        sock.close()
+    return True
+
+sys.exit(0 if port_free() else 1)
+PY
+      ;;
+    *)
+      echo "Herramienta de verificacion de puertos no soportada: $PORT_CHECK_TOOL" >&2
+      exit 3
+      ;;
+  esac
 }
 
 reserve_port() {
@@ -152,4 +200,3 @@ done
 }
 
 exit 0
-

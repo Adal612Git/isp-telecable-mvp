@@ -115,10 +115,64 @@ services:
       context: ${PWD}
       dockerfile: apps/portal-cliente/Dockerfile
     container_name: app-portal-cliente
-    ports: ["${HOST_PORTAL_PORT:-8088}:80"]
+    depends_on:
+      - clientes
+      - catalogo
+      - orquestador
+    ports: ["${HOST_PORTAL_CLIENTE_PORT:-5173}:80"]
     environment:
-      HOST_CATALOGO_PORT: ${HOST_CATALOGO_PORT:-8001}
-      HOST_ORQ_PORT: ${HOST_ORQ_PORT:-8010}
+      VITE_API_CLIENTES_URL: http://clientes:8000
+      VITE_API_FACTURACION_URL: http://facturacion:8002
+      VITE_API_PAGOS_URL: http://pagos:8003
+      VITE_API_ORQUESTADOR_URL: http://orquestador:8010
+      VITE_API_INSTALACIONES_URL: http://instalaciones:8004
+      VITE_API_RED_URL: http://red:8020
+      VITE_API_TICKETS_URL: http://tickets:8006
+      VITE_API_REPORTES_URL: http://reportes:8007
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:80',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  portal-tecnico:
+    build:
+      context: ${PWD}
+      dockerfile: apps/portal-tecnico/Dockerfile
+    container_name: app-portal-tecnico
+    depends_on:
+      - instalaciones
+      - tickets
+      - red
+    ports: ["${HOST_PORTAL_TECNICO_PORT:-5174}:80"]
+    environment:
+      VITE_API_CLIENTES_URL: http://clientes:8000
+      VITE_API_INSTALACIONES_URL: http://instalaciones:8004
+      VITE_API_TICKETS_URL: http://tickets:8006
+      VITE_API_RED_URL: http://red:8020
+      VITE_API_INVENTARIO_URL: http://inventario:8008
+    networks: [telecable-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request,sys\ntry:\n r=urllib.request.urlopen('http://localhost:80',timeout=2)\n sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n sys.exit(1)\nPY"]
+      interval: 10s
+      retries: 10
+
+  portal-facturacion:
+    build:
+      context: ${PWD}
+      dockerfile: apps/portal-facturacion/Dockerfile
+    container_name: app-portal-facturacion
+    depends_on:
+      - facturacion
+      - pagos
+      - reportes
+    ports: ["${HOST_PORTAL_FACTURACION_PORT:-8091}:80"]
+    environment:
+      VITE_API_FACTURACION_URL: http://facturacion:8002
+      VITE_API_PAGOS_URL: http://pagos:8003
+      VITE_API_REPORTES_URL: http://reportes:8007
     networks: [telecable-net]
     restart: unless-stopped
     healthcheck:

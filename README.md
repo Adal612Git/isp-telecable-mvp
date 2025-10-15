@@ -24,7 +24,9 @@ Este paquete entrega el núcleo comercial con 4 microservicios (Clientes, Catál
 - Loki: http://localhost:3100 (API)
 - Tempo: http://localhost:3200 (API)
 - MinIO: http://localhost:9001 (console) – (admin/admin123)
-- Portal Cliente: http://localhost:${HOST_PORTAL_PORT:-8088}
+- Portal Cliente: http://localhost:${HOST_PORTAL_CLIENTE_PORT:-5173}
+- Portal T�cnico: http://localhost:${HOST_PORTAL_TECNICO_PORT:-5174}
+- Portal Facturaci�n: http://localhost:${HOST_PORTAL_FACTURACION_PORT:-8091}
 - Backoffice: http://localhost:${HOST_BACKOFFICE_PORT:-8089}
 - Clientes API: http://localhost:${HOST_CLIENTES_PORT:-8000}
 - Catálogo API: http://localhost:${HOST_CATALOGO_PORT:-8001}
@@ -32,6 +34,10 @@ Este paquete entrega el núcleo comercial con 4 microservicios (Clientes, Catál
 - Pagos API: http://localhost:${HOST_PAGOS_PORT:-8003}
 - Orquestador: http://localhost:${HOST_ORQ_PORT:-8010}
 - WhatsApp Mock: http://localhost:${HOST_WHATSAPP_PORT:-8011}
+
+## Arranque r�pido
+- Windows: ejecuta `scripts/setup_all.bat` (doble clic).
+- Linux/macOS: `bash scripts/setup_all.sh`
 
 ## Comandos para ejecutar y probar
 - make up

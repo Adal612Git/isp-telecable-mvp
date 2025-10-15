@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const portalPort = process.env.HOST_PORTAL_PORT || '8088';
+const portalPort = process.env.HOST_PORTAL_CLIENTE_PORT || '5173';
 
 export default defineConfig({
   testDir: './tests',
