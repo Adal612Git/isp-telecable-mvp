@@ -205,19 +205,33 @@ class SetupOrchestrator:
                 f" manualmente y vuelve a intentar."
             )
 
+    def _normalize_text(self, text: str) -> str:
+        """Normaliza mensajes a ASCII para evitar errores de codificacion en Windows."""
+        if not isinstance(text, str):
+            text = str(text)
+        normalized = text.encode("ascii", "ignore").decode("ascii")
+        if not normalized:
+            normalized = ""
+        return normalized
+
     def _emit(self, message: str) -> None:
+        safe_message = self._normalize_text(message)
         if self.console:
-            self.console.print(message)
+            try:
+                self.console.print(safe_message)
+            except Exception:
+                print(safe_message)
         else:
-            print(message)
-        self.logger.info(message)
+            print(safe_message)
+        self.logger.info(safe_message)
 
     def _prompt(self, prompt: str, default: str = "") -> str:
         if self.auto_confirm:
             self.logger.debug("Auto confirmación activada, devolviendo default=%s", default)
             return default
         try:
-            return input(f"{prompt}\n> ") or default
+            safe_prompt = self._normalize_text(prompt)
+            return input(f"{safe_prompt}\n> ") or default
         except KeyboardInterrupt:
             self.logger.warning("Entrada cancelada por el usuario")
             raise SystemExit(1) from None
@@ -237,17 +251,17 @@ class SetupOrchestrator:
 
         cmd_display = command if isinstance(command, str) else " ".join(command)
         self.logger.debug("Ejecutando comando: %s", cmd_display)
-        stdout_setting = subprocess.PIPE if capture else None
-        stderr_setting = subprocess.STDOUT if capture else None
-        completed = subprocess.run(
-            command,
-            check=check,
-            capture_output=capture,
-            stdout=stdout_setting,
-            stderr=stderr_setting,
-            text=True,
-            shell=shell,
-        )
+        try:
+            completed = subprocess.run(
+                command,
+                check=check,
+                capture_output=capture,
+                text=True,
+                shell=shell,
+            )
+        except FileNotFoundError as exc:
+            self.logger.warning("Comando no encontrado: %s", exc)
+            return subprocess.CompletedProcess(command, 127, "", str(exc))
         if capture and completed.stdout:
             self.logger.debug("Salida: %s", completed.stdout.strip())
         return completed
