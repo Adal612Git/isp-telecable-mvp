@@ -1,107 +1,121 @@
-# Demo Telecable MVP · Router Simulator + Portales
+# Demo Telecable MVP · Setup Inteligente
 
-Este documento explica cómo levantar la demo integral (portal cliente/técnico/ventas y los microservicios necesarios), ejecutar pruebas E2E y depurar problemas comunes tanto en Linux como en Windows.
+Este documento explica cómo usar el nuevo **Setup Inteligente** para preparar y
+levantar la demo integral (portal cliente/técnico/ventas, microservicios y
+simulador de router) tanto en Linux como en Windows. El sistema está compuesto
+por un orquestador en Python y wrappers específicos para cada plataforma que
+pueden ejecutarse con doble click.
 
 ## 1. Scripts disponibles
 
 | Script | Descripción |
 | --- | --- |
-| `scripts/run_demo.sh` | Orquestación principal en Linux/macOS: detecta puertos libres, instala dependencias básicas, levanta los microservicios FastAPI y los tres portales Vite, y actualiza `.env.ports`. |
-| `scripts/run_demo.ps1` | Variante para Windows que replica la asignación de puertos y abre nuevas ventanas de PowerShell con cada servicio. |
-
-Ambos scripts generan/actualizan el archivo `.env.ports` con los puertos asignados:
-
-```
-HOST_CLIENTES_PORT=<puerto portal-cliente>
-HOST_TECH_PORT=<puerto portal-tecnico>
-HOST_SALES_PORT=<puerto portal-ventas>
-HOST_ROUTER_SIM_PORT=<puerto router-simulator>
-HOST_CLIENTES_API_PORT=<puerto servicio clientes>
-```
+| `scripts/setup_linux.sh` | Wrapper para Linux. Verifica Python 3.10+, delega al orquestador y mantiene la terminal abierta. |
+| `scripts/setup_windows.ps1` | Wrapper de PowerShell para Windows. Comprueba Python, detecta `winget/choco` y lanza el orquestador. |
+| `scripts/setup_windows.bat` | Archivo doble-click que invoca al script PowerShell con `ExecutionPolicy Bypass`. |
+| `scripts/setup_orchestrator.py` | Script principal en Python que realiza todas las etapas: dependencias, configuración, puertos, arranque, health checks y demo opcional. |
+| `scripts/port_helper.py` | Utilidad auxiliar para validar puertos específicos. |
+| `scripts/tests_smoke.sh` / `scripts/tests_smoke.ps1` | Pruebas de humo para validar `/health` y los portales una vez que el setup terminó. |
 
 ## 2. Ejecución en Linux (Ubuntu)
 
-1. Asegúrate de tener Python 3.11+, Node.js 18+ y npm.
-2. Concede permisos de ejecución al script (una sola vez):
+1. Asegúrate de marcar el script como ejecutable (una sola vez):
    ```bash
-   chmod +x scripts/run_demo.sh
+   chmod +x scripts/setup_linux.sh
    ```
-3. Ejecuta la orquestación:
+2. Desde el gestor de archivos puedes hacer doble click y seleccionar *"Ejecutar en una terminal"*. Si tu gestor no ofrece esta opción, abre manualmente una terminal y ejecuta:
    ```bash
-   ./scripts/run_demo.sh
+   ./scripts/setup_linux.sh
    ```
-   El script instalará dependencias mínimas (`pip install …` y `npm install` cuando falten), levantará cada servicio y escribirá los logs en `logs/*.service.log`. Si `xdg-open` está disponible abrirá automáticamente los portales en el navegador.
-4. Las URL finales (mencionadas también en consola) quedan así:
-   - Portal Cliente: `http://localhost:<HOST_CLIENTES_PORT>/cliente`
-   - Portal Técnico: `http://localhost:<HOST_TECH_PORT>/tecnico`
-   - Portal Ventas: `http://localhost:<HOST_SALES_PORT>/ventas`
+3. El orquestador mostrará un dashboard paso a paso:
+   - **Etapa 0** valida SO, Python y Git.
+   - **Etapa 1** revisa Docker, Node.js, pnpm/npm, Playwright, etc. Si falta algo propondrá instalar con `sudo apt install ...`.
+   - **Etapa 2** verifica `.env`, `.env.ports` y directorios críticos (`infra/postgres`, `infra/minio-data`, `services/router_simulator`).
+   - **Etapa 3** asigna puertos libres dentro de `PORT_RANGE` (por defecto `3000-3999`) y actualiza `.env.ports`.
+   - **Etapa 4** ejecuta `docker compose up -d --build` si existe `docker-compose.yml` y levanta los portales Vite en segundo plano.
+   - **Etapa 5** realiza health checks (`http://localhost:<puerto>/health`).
+   - **Etapa 6** (opcional) ejecuta la demo automática (`--demo`).
+4. El script es interactivo: ante un fallo mostrará ✅ lo que pasó, ❌ lo que falló y 🛠️ los comandos sugeridos. Puedes elegir `(R)etry`, `(A)uto-fix`, `(S)kip` o `(Q)uit`.
+5. Al finalizar mostrará un resumen con los puertos asignados y dejará la terminal abierta para que presiones ENTER.
 
-### 2.1 Pruebas Playwright
+### 2.1 Ejemplo de mensajes
 
-Tras ejecutar la demo, carga las variables de puerto y corre Playwright:
-```bash
-source .env.ports
-cd Tests/e2e
-npx playwright test tests/test_router_flow.spec.ts
 ```
-La prueba `test_router_flow` valida el alta del cliente y el control del router (apagar/encender) sobre el portal cliente.
+INICIANDO SETUP INTELIGENTE — ISP TELECABLE MVP
+1/7 Verificando Docker... OK (docker version: 24.0.5)
+PUERTO 3000 OCUPADO por PID 5678 (node). Reasignar a 3001? (Y/n)
+ERROR: Docker no responde: 'Cannot connect to the Docker daemon'. Posibles causas: Docker no está corriendo. Solución rápida: sudo systemctl start docker. Intentar restart? (Y/n)
+LISTO ✅ El demo está corriendo. URLs: Cliente: http://localhost:3000 Técnico: http://localhost:3001 Ventas: http://localhost:3002 RouterSim: http://localhost:4000. Logs: logs/setup.log. Presiona ENTER para cerrar.
+```
 
-### 2.2 Depuración y logs
+### 2.2 Prueba de humo
 
-- **Logs de servicios**: `tail -f logs/router-simulator.service.log`, `tail -f logs/clientes-api.service.log`, etc.
-- **Reiniciar sólo un servicio**: usa `pkill -f <nombre>` (por ejemplo `pkill -f portal-cliente`) y vuelve a ejecutar `./scripts/run_demo.sh`; detectará que falta y lo recreará.
-- **Regenerar puertos**: elimina `.env.ports` y relanza el script. También puedes editar manualmente el archivo si deseas forzar puertos específicos antes de la ejecución.
+Una vez que la demo esté arriba puedes ejecutar la prueba rápida:
+```bash
+./scripts/tests_smoke.sh
+```
+Esto consultará `/health` en la API de clientes y en el router simulator, además de validar que el portal cliente responde.
 
 ## 3. Ejecución en Windows
 
-Requisitos: Windows 10/11, PowerShell, Python y Node.js en PATH.
+1. Abre el explorador de archivos y haz doble click en `scripts\setup_windows.bat`. Esto abrirá PowerShell con la política `Bypass` y ejecutará `scripts/setup_windows.ps1`.
+2. Si Windows bloquea la ejecución de scripts, verás el mensaje correspondiente. Sigue las instrucciones mostradas (por ejemplo, ejecuta manualmente `powershell -ExecutionPolicy Bypass -File scripts\setup_windows.ps1`).
+3. El wrapper verificará Python 3.10+. Si no está disponible sugerirá instalarlo con `winget` o `choco` y mantendrá la ventana abierta.
+4. El orquestador Python ejecutará las mismas etapas que en Linux, adaptando los mensajes y sugerencias (por ejemplo, `taskkill /PID <pid> /F` para cerrar procesos en puertos ocupados).
+5. Al terminar dejará la ventana abierta esperando ENTER.
 
-1. Abre PowerShell como usuario normal (no requiere privilegios de administrador).
-2. Ejecuta el script (desbloquea la política si es necesario):
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File scripts/run_demo.ps1
-   ```
-3. El script asignará puertos, instalará dependencias si faltan y abrirá nuevas ventanas de PowerShell, una por servicio (router-simulator, clientes API y cada portal Vite). No cierres esas ventanas mientras uses la demo.
-4. Las URL son las mismas que en Linux, sustituyendo los puertos definidos en `.env.ports`.
+### 3.1 Prueba de humo
 
-### 3.1 Notas específicas de Windows
+Con los servicios arriba ejecuta en PowerShell:
+```powershell
+./scripts/tests_smoke.ps1
+```
 
-- Si falta `python` o `npm`, el script lo indicará y deberás ejecutar manualmente los comandos mostrados.
-- Los procesos quedan ligados a las ventanas abiertas; ciérralas para detenerlos.
+## 4. Modo automático / CI
 
-## 4. Flujo manual para validar la demo
+El orquestador acepta banderas adicionales:
+
+- `--auto` / `--yes`: modo no interactivo, acepta los auto-fix disponibles.
+- `--demo`: ejecuta la demo automática que crea un cliente, apaga y vuelve a encender su router.
+- `--ci`: modo pensado para pipelines, evita prompts y retorna códigos de salida (`0` éxito, `1` parcial, `2` fatal en futuras ampliaciones).
+- `--verbose`: imprime los logs detallados además de guardarlos en `logs/setup.log`.
+
+Ejemplo en Linux:
+```bash
+./scripts/setup_linux.sh --auto --demo
+```
+
+## 5. Archivos generados
+
+- `.env.ports`: mapa actualizado de puertos (`HOST_CLIENTES_PORT`, `HOST_TECH_PORT`, etc.).
+- `logs/setup.log`: bitácora estructurada con timestamps.
+- `logs/last_state.json`: último estado de cada etapa y puertos reservados.
+- `logs/demo_transcript.txt`: sólo si ejecutas `--demo`, contiene la transcripción del flujo automático.
+
+## 6. Problemas frecuentes y soluciones
+
+| Problema | Causa probable | Solución sugerida |
+| --- | --- | --- |
+| Docker no responde | Docker Desktop detenido / servicio docker apagado | En Linux: `sudo systemctl start docker`. En Windows: abre Docker Desktop. Usa la opción `(R)etry` cuando esté activo. |
+| Puerto ocupado | Otro servicio usa el puerto preferido | El orquestador propondrá reasignar automáticamente. También puedes cerrar el proceso con `kill <PID>` (Linux) o `taskkill /PID <PID> /F` (Windows). |
+| Falta Playwright | Dependencia de pruebas E2E | `npm install -g playwright` o `npx playwright install`. El orquestador mostrará el comando exacto. |
+| No existe `.env` | Variables de entorno no definidas | Copia el archivo de ejemplo o crea uno nuevo siguiendo la documentación interna. |
+
+## 7. Demo manual
+
+Si prefieres validar el flujo manualmente:
 
 1. Abre `http://localhost:<HOST_CLIENTES_PORT>/cliente`.
-   - Usa el botón **“Autocompletar demo”** o llena el formulario con tus datos.
-   - Registra al cliente: verás el `router_id`, el estado “Encendido” y podrás apagar/encender el router con actualizaciones en tiempo real (WebSocket/polling).
-2. Abre `http://localhost:<HOST_TECH_PORT>/tecnico`.
-   - Usa la opción *Routers* para visualizar todos los routers simulados y ejecutar reinicios/remociones rápidas.
-3. Abre `http://localhost:<HOST_SALES_PORT>/ventas`.
-   - Genera propuestas seleccionando uno de los planes disponibles y revisa el historial generado.
+   - Usa el botón **“Autocompletar demo”** o completa el formulario.
+   - Tras registrar, observa el `router_id`, el estado y usa los botones para apagar/encender (WebSocket activo).
+2. Abre `http://localhost:<HOST_TECH_PORT>/tecnico` y revisa el listado de routers. Puedes ejecutar reinicios rápidos.
+3. Abre `http://localhost:<HOST_SALES_PORT>/ventas` para explorar los planes comerciales.
 
-## 5. Cambios de puerto y regeneración
+## 8. Resumen rápido
 
-- Edita manualmente `.env.ports` antes de ejecutar el script si quieres forzar algún puerto (el script respetará los libres).
-- Para regenerar completamente la asignación: elimina `.env.ports` y vuelve a correr `scripts/run_demo.sh` o `scripts/run_demo.ps1`.
+1. **Linux**: doble click en `setup_linux.sh` (asegúrate de permitir "Ejecutar en terminal").
+2. **Windows**: doble click en `setup_windows.bat`. Si PowerShell avisa sobre políticas, usa el comando que se muestra.
+3. Sigue las instrucciones en pantalla. Cada etapa indica con iconos si fue exitosa y qué hacer si falla.
+4. Consulta `logs/setup.log` y `logs/last_state.json` para diagnósticos detallados.
 
-## 6. Comandos útiles de depuración
-
-| Propósito | Comando |
-| --- | --- |
-| Ver logs en vivo | `tail -f logs/run_demo.log` |
-| Ver logs de un servicio concreto | `tail -f logs/router-simulator.service.log` |
-| Forzar reinstalación npm | `npm install --prefix apps/portal-ventas` |
-| Forzar reinicio router-simulator | `pkill -f router-simulator` seguido de `./scripts/run_demo.sh` |
-| Ejecutar Playwright completo | `source .env.ports && cd Tests/e2e && npx playwright test` |
-
-Con esto dispones de una demo integral con los tres portales, el simulador de router (FastAPI + WebSocket) y la automatización necesaria para mostrar el flujo completo de alta, monitoreo y venta.
-
-## 7. Changelog rápido
-
-- `services/router_simulator/app/main.py`, `state.py`: servicio FastAPI que gestiona la simulación de routers (estado, uptime, WebSocket y acciones de energía).
-- `services/clientes/app/routers/clientes.py`: creación y consulta de clientes con provisión automática de routers y endpoints proxy hacia el simulador.
-- `apps/portal-cliente/`: interfaz cliente con página "Mi Router", formulario de alta, control de energía y streaming de estado.
-- `apps/portal-tecnico/`: panel técnico para monitorear routers y ejecutar reinicios rápidos.
-- `apps/portal-ventas/`: portal ligero con planes y generador de propuestas.
-- `scripts/run_demo.sh` / `scripts/run_demo.ps1`: orquestación multiplataforma para levantar servicios y frontends.
-- `Tests/e2e/tests/test_router_flow.spec.ts`: prueba Playwright que verifica el flujo de alta y control de router desde la UI.
+Con estos scripts dispones de un arranque multiplataforma robusto, con opciones de auto-reparación, logging detallado y una demo automática que valida el flujo extremo a extremo.
