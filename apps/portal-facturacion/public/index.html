@@ -1,0 +1,128 @@
+﻿<!doctype html>
+<html lang=\"es\">
+  <head>
+    <meta charset=\"utf-8\" />
+    <title>Telecable - Portal Facturacion</title>
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <link rel=\"icon\" type=\"image/png\" href=\"/icons/icon-192.png\" />
+    <link rel=\"manifest\" href=\"/manifest.webmanifest\" />
+    <meta name=\"theme-color\" content=\"#0b1220\" />
+    <link rel=\"stylesheet\" href=\"/styles.css\" />
+  </head>
+  <body>
+    <header>
+      <div class=\"brand\">
+        <span class=\"emoji\">ISP</span>
+        <div>
+          <p class=\"subtitle\">Telecable MVP</p>
+          <h1>Portal Facturacion</h1>
+        </div>
+      </div>
+      <nav>
+        <button data-section=\"dashboard\" class=\"active\">Dashboard</button>
+        <button data-section=\"facturas\">Facturacion</button>
+        <button data-section=\"pagos\">Pagos</button>
+        <button data-section=\"reportes\">Reportes</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id=\"dashboard\" class=\"panel active\">
+        <h2>Vision general</h2>
+        <div id=\"stats\" class=\"stats-grid\"></div>
+      </section>
+
+      <section id=\"facturas\" class=\"panel\">
+        <h2>CFDI recientes</h2>
+        <table class=\"data-table\">
+          <thead>
+            <tr>
+              <th>UUID</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Estatus</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id=\"tabla-facturas\"></tbody>
+        </table>
+
+        <h3>Generacion masiva</h3>
+        <form id=\"form-lote\">
+          <label>
+            Lote (JSON)
+            <textarea name=\"lote\" rows=\"5\">[{\"cliente_id\":1,\"total\":299.0}]</textarea>
+          </label>
+          <label>
+            Cancelar (UUID)
+            <input name=\"cancelar\" placeholder=\"UUID\" />
+          </label>
+          <div class=\"actions\">
+            <button type=\"submit\" data-action=\"generar\">Generar masivo</button>
+            <button type=\"button\" data-action=\"cancelar\">Cancelar factura</button>
+          </div>
+        </form>
+        <pre id=\"facturacion-log\" class=\"log\"></pre>
+      </section>
+
+      <section id=\"pagos\" class=\"panel\">
+        <h2>Pagos y Conciliacion</h2>
+        <div class=\"actions\">
+          <button id=\"btn-conciliar\">Conciliar ahora</button>
+          <button id=\"btn-exportar\">Descargar CSV</button>
+        </div>
+        <div class=\"pagos-tablas\">
+          <div>
+            <h3>Pendientes</h3>
+            <table class=\"data-table\">
+              <thead>
+                <tr>
+                  <th>Referencia</th>
+                  <th>Monto</th>
+                  <th>Estatus</th>
+                  <th>Cliente</th>
+                </tr>
+              </thead>
+              <tbody id=\"tabla-pagos-pendientes\"></tbody>
+            </table>
+          </div>
+          <div>
+            <h3>Conciliados</h3>
+            <table class=\"data-table\">
+              <thead>
+                <tr>
+                  <th>Referencia</th>
+                  <th>Monto</th>
+                  <th>Estatus</th>
+                  <th>Conciliado</th>
+                </tr>
+              </thead>
+              <tbody id=\"tabla-pagos-conciliados\"></tbody>
+            </table>
+          </div>
+        </div>
+        <pre id=\"pagos-log\" class=\"log\"></pre>
+      </section>
+
+      <section id=\"reportes\" class=\"panel\">
+        <h2>Reportes</h2>
+        <div class=\"actions\">
+          <button id=\"btn-kpis\">Refrescar KPIs</button>
+          <button id=\"btn-backtest\">Backtest churn (make bi-churn)</button>
+        </div>
+        <div class=\"chart-container\">
+          <canvas id=\"ingresos-chart\" height=\"220\"></canvas>
+        </div>
+        <div id=\"reportes-output\" class=\"report-output\"></div>
+      </section>
+    </main>
+
+    <footer>
+      Telecable MVP - Facturacion y conciliacion demo - MinIO/S3 emulado
+    </footer>
+
+    <script src=\"/env.js\"></script>
+    <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js\"></script>
+    <script src=\"/app.js\" type=\"module\"></script>
+  </body>
+</html>

@@ -177,6 +177,29 @@ def obtener_cliente(id: int, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/clientes/{id}/estado")
+def obtener_estado_cliente(id: int, db: Session = Depends(get_db)):
+    cli = db.query(models.Cliente).filter(models.Cliente.id == id).first()
+    if not cli:
+        raise HTTPException(status_code=404, detail="No encontrado")
+    contrato = (
+        db.query(models.Contrato)
+        .filter(models.Contrato.cliente_id == cli.id, models.Contrato.estatus == "activo")
+        .first()
+    )
+    if cli.estatus == "inactivo":
+        estado = "suspendido"
+    elif contrato:
+        estado = "instalado"
+    else:
+        estado = "pendiente"
+    return {
+        "cliente_id": cli.id,
+        "estado": estado,
+        "plan_id": contrato.plan_id if contrato else None,
+    }
+
+
 @router.put("/clientes/{id}", response_model=ClienteOut)
 async def actualizar_cliente(id: int, payload: ClienteCreate, db: Session = Depends(get_db)):
     cli = db.query(models.Cliente).filter(models.Cliente.id == id).first()

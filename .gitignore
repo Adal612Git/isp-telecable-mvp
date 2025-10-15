@@ -20,3 +20,31 @@ docker-data/
 # Tests / Coverage
 coverage/
 tests/reports/
+# Local envs / secrets
+.env
+.env.*.local
+.env.ports
+
+# Docker / backups / temp
+docker-compose.yml.bak
+compose.windows.override.yml
+*.bak
+*.log
+logs/
+tmp/
+
+# DB / storage local / volumes
+infra/minio-data/
+infra/postgres/
+infra/postgres/**
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
+
+# Build / node modules / dist
+node_modules/
+dist/

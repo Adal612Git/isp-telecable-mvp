@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: #0b1220;
+  color: #e5f0ff;
+  min-height: 100vh;
+}
+
+.card {
+  @apply rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl backdrop-blur;
+}

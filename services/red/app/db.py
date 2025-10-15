@@ -26,6 +26,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db():
-    from .models import IdempotencyKey
+    from .models import IdempotencyKey, RouterState
     Base.metadata.create_all(bind=engine)
 

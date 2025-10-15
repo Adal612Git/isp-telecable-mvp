@@ -19,6 +19,7 @@ class Pago(Base):
     referencia: Mapped[str] = mapped_column(String(100), unique=True)
     metodo: Mapped[str] = mapped_column(String(30))
     monto: Mapped[float] = mapped_column(Float)
+    cliente_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estatus: Mapped[str] = mapped_column(String(30), default="pendiente")
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

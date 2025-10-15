@@ -4,7 +4,7 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 OUT_DIR="$ROOT_DIR/Tests/reports/portal"
 mkdir -p "$OUT_DIR"
 
-PORT=${HOST_PORTAL_PORT:-8088}
+PORT=${HOST_PORTAL_CLIENTE_PORT:-5173}
 
 docker run --rm --network=host \
   -v "$OUT_DIR":/reports \

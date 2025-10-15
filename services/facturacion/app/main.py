@@ -1,9 +1,10 @@
 import os
 import uuid as uuidlib
 from datetime import datetime
-from fastapi import FastAPI, BackgroundTasks, HTTPException, Request, Response
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from opentelemetry import trace
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
@@ -236,6 +237,95 @@ def stats():
         db.close()
 
 
+@app.get("/facturacion/kpis")
+def facturacion_kpis():
+    db: Session = SessionLocal()
+    try:
+        activos = (
+            db.query(func.count(func.distinct(Factura.cliente_id)))
+            .filter(Factura.estatus.in_(["timbrado", "pagado"]))
+            .scalar()
+            or 0
+        )
+        morosos = (
+            db.query(func.count(Factura.uuid))
+            .filter(Factura.estatus == "pendiente")
+            .scalar()
+            or 0
+        )
+        ahora = datetime.utcnow()
+        mes_inicio = ahora.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        ingresos = (
+            db.query(func.coalesce(func.sum(Factura.total), 0))
+            .filter(Factura.estatus == "pagado", Factura.fecha_emision >= mes_inicio)
+            .scalar()
+            or 0
+        )
+        emitidas = (
+            db.query(func.count(Factura.uuid))
+            .filter(Factura.fecha_emision >= mes_inicio)
+            .scalar()
+            or 0
+        )
+        return {
+            "clientes_activos": int(activos),
+            "morosos": int(morosos),
+            "ingresos_mensuales": float(ingresos),
+            "facturas_emitidas": int(emitidas),
+        }
+    finally:
+        db.close()
+
+
+@app.get("/facturacion/ultimas")
+def facturacion_ultimas(limit: int = Query(10, ge=1, le=50)):
+    db: Session = SessionLocal()
+    try:
+        rows = (
+            db.query(Factura)
+            .order_by(Factura.fecha_emision.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "uuid": fac.uuid,
+                "cliente_id": fac.cliente_id,
+                "total": fac.total,
+                "estatus": fac.estatus,
+                "fecha_emision": fac.fecha_emision.isoformat(),
+                "folio": fac.folio,
+            }
+            for fac in rows
+        ]
+    finally:
+        db.close()
+
+
+@app.get("/facturacion/cliente/{cliente_id}")
+def facturas_cliente(cliente_id: int, limit: int = Query(10, ge=1, le=100)):
+    db: Session = SessionLocal()
+    try:
+        rows = (
+            db.query(Factura)
+            .filter(Factura.cliente_id == cliente_id)
+            .order_by(Factura.creado_en.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "uuid": fac.uuid,
+                "total": fac.total,
+                "estatus": fac.estatus,
+                "xml_path": fac.xml_path,
+            }
+            for fac in rows
+        ]
+    finally:
+        db.close()
+
+
 @app.get("/facturacion/{uuid}")
 def obtener_factura(uuid: str):
     db: Session = SessionLocal()
@@ -258,6 +348,20 @@ def cancelar(uuid: str):
         fac.estatus = "cancelado"
         db.commit()
         return {"uuid": fac.uuid, "estatus": fac.estatus, "acuse": f"Cancelado-{datetime.utcnow().isoformat()}"}
+    finally:
+        db.close()
+
+
+@app.patch("/facturacion/{uuid}/pagar")
+def marcar_pagada(uuid: str):
+    db: Session = SessionLocal()
+    try:
+        fac = db.query(Factura).filter(Factura.uuid == uuid).first()
+        if not fac:
+            raise HTTPException(status_code=404, detail="No encontrado")
+        fac.estatus = "pagado"
+        db.commit()
+        return {"uuid": fac.uuid, "estatus": fac.estatus}
     finally:
         db.close()
 

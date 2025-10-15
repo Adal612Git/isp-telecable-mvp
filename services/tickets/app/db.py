@@ -26,6 +26,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db():
-    from .models import Ticket
+    from .models import Ticket, TicketFeedback
     Base.metadata.create_all(bind=engine)
 

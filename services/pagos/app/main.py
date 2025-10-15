@@ -24,7 +24,9 @@ except Exception:  # pragma: no cover - allow unit tests without the dependency
 
 from .logging_conf import configure_logging
 from .db import init_db, SessionLocal
-from .models import Pago, Transaccion, WebhookLog, IdempotencyKey, Conciliacion
+from .models import Conciliacion, IdempotencyKey, Pago, Transaccion, WebhookLog
+import httpx
+from pydantic import BaseModel, Field
 
 
 service_name = os.getenv("SERVICE_NAME", "pagos")
@@ -86,6 +88,82 @@ def get_db():
         db.close()
 
 
+def _serialize_pago(pago: Pago) -> dict:
+    return {
+        "referencia": pago.referencia,
+        "metodo": pago.metodo,
+        "monto": pago.monto,
+        "estatus": pago.estatus,
+        "clienteId": pago.cliente_id,
+        "creadoEn": pago.creado_en.isoformat(),
+        "facturaUuid": pago.factura_uuid,
+    }
+
+
+class PagoIn(BaseModel):
+    cliente_id: int = Field(..., ge=1)
+    monto: float = Field(..., ge=0)
+    metodo: str = "spei"
+    factura_uuid: str | None = None
+
+
+def _marcar_factura_pagada(uuid: str) -> None:
+    fact_url = os.getenv("FACTURACION_URL", "http://facturacion:8002")
+    try:
+        response = httpx.patch(f"{fact_url}/facturacion/{uuid}/pagar", timeout=5.0)
+        response.raise_for_status()
+    except Exception as exc:
+        logger.warning("no se pudo marcar factura pagada", extra={"service": service_name, "uuid": uuid, "error": str(exc)})
+
+
+@app.post("/pagos")
+def crear_pago(body: PagoIn):
+    db: Session = SessionLocal()
+    try:
+        conciliado = body.factura_uuid is not None
+        referencia = str(uuid4())
+        pago = Pago(
+            referencia=referencia,
+            metodo=body.metodo,
+            monto=body.monto,
+            cliente_id=body.cliente_id,
+            estatus="conciliado" if conciliado else "confirmado",
+            factura_uuid=body.factura_uuid,
+        )
+        db.add(pago)
+        db.flush()
+        tx = Transaccion(
+            pago_ref=referencia,
+            provider=body.metodo.upper(),
+            provider_tx=str(uuid4()),
+            exitoso=True,
+        )
+        db.add(tx)
+        db.add(Conciliacion(referencia=referencia, conciliado=conciliado))
+        db.commit()
+        if conciliado and body.factura_uuid:
+            _marcar_factura_pagada(body.factura_uuid)
+        db.refresh(pago)
+        return _serialize_pago(pago)
+    finally:
+        db.close()
+
+
+@app.get("/pagos/pendientes")
+def pagos_pendientes():
+    db: Session = SessionLocal()
+    try:
+        rows = (
+            db.query(Pago)
+            .filter(Pago.estatus != "conciliado")
+            .order_by(Pago.creado_en.asc())
+            .all()
+        )
+        return [_serialize_pago(p) for p in rows]
+    finally:
+        db.close()
+
+
 @app.post("/pagos/procesar")
 def procesar_pago(body: dict, idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")):
     db: Session = next(get_db())
@@ -97,14 +175,20 @@ def procesar_pago(body: dict, idempotency_key: str | None = Header(default=None,
         referencia = body.get("referencia") or str(uuid4())
         metodo = body.get("metodo", "spei")
         monto = float(body.get("monto", 0))
-        pago = Pago(referencia=referencia, metodo=metodo, monto=monto, estatus="confirmado")
+        cliente_id = body.get("cliente_id")
+        try:
+            cliente_id_int = int(cliente_id) if cliente_id is not None else None
+        except Exception:
+            cliente_id_int = None
+        pago = Pago(referencia=referencia, metodo=metodo, monto=monto, cliente_id=cliente_id_int, estatus="confirmado")
         db.add(pago)
         db.flush()
         tx = Transaccion(pago_ref=referencia, provider=metodo.upper(), provider_tx=str(uuid4()), exitoso=True)
         db.add(tx)
         db.add(Conciliacion(referencia=referencia, conciliado=True))
         db.commit()
-        resp = {"referencia": referencia, "estatus": "confirmado", "monto": monto}
+        db.refresh(pago)
+        resp = _serialize_pago(pago)
         if idempotency_key:
             db.add(IdempotencyKey(key=idempotency_key, reference=referencia, response=json.dumps(resp)))
             db.commit()
@@ -158,7 +242,23 @@ def obtener_pago(referencia: str):
         p = db.query(Pago).filter(Pago.referencia == referencia).first()
         if not p:
             raise HTTPException(status_code=404, detail="No encontrado")
-        return {"referencia": p.referencia, "estatus": p.estatus, "monto": p.monto}
+        return _serialize_pago(p)
+    finally:
+        db.close()
+
+
+@app.get("/pagos/cliente/{cliente_id}")
+def pagos_cliente(cliente_id: int):
+    db: Session = next(get_db())
+    try:
+        rows = (
+            db.query(Pago)
+            .filter(Pago.cliente_id == cliente_id)
+            .order_by(Pago.creado_en.desc())
+            .limit(50)
+            .all()
+        )
+        return [_serialize_pago(p) for p in rows]
     finally:
         db.close()
 
